@@ -98,7 +98,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
         <SideNav sections={sections} />
         <div className="sidebar-user">
-          <Link href="/perfil" className="avatar" aria-label="Mi perfil">
+          <Link prefetch={false} href="/perfil" className="avatar" aria-label="Mi perfil">
             {initials(user.name)}
           </Link>
           <div className="grow">
@@ -131,7 +131,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <Crumb />
           </div>
           <div className="grow mobile-only" />
-          <Link href="/notificaciones" className="icon-btn" aria-label={unread ? `Notificaciones, ${unread} sin leer` : "Notificaciones"}>
+          <Link prefetch={false} href="/notificaciones" className="icon-btn" aria-label={unread ? `Notificaciones, ${unread} sin leer` : "Notificaciones"}>
             <span aria-hidden="true" className="ms" style={{ fontSize: 22 }}>notifications</span>
             {unread > 0 && <span className="dot" />}
           </Link>

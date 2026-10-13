@@ -46,14 +46,14 @@ export default async function Detalle({ params, searchParams }: { params: Promis
 
   return (
     <div className="page">
-      <Link href={ctx.isTeam && !asBuyer ? `/venta/${l.id}` : "/oportunidades"} className="back">
+      <Link prefetch={false} href={ctx.isTeam && !asBuyer ? `/venta/${l.id}` : "/oportunidades"} className="back">
         <Icon name="arrow_back" />
         {ctx.isTeam && !asBuyer ? "Gestión de la publicación" : "Catálogo"}
       </Link>
       {asBuyer && (
         <div className="mb-24">
           <Banner tone="info" icon="visibility">
-            Vista previa como comprador sin autorización: así se ve su publicación en el catálogo. <Link href={`/oportunidades/${code}`}>Salir de la vista previa</Link>
+            Vista previa como comprador sin autorización: así se ve su publicación en el catálogo. <Link prefetch={false} href={`/oportunidades/${code}`}>Salir de la vista previa</Link>
           </Banner>
         </div>
       )}
@@ -101,7 +101,7 @@ export default async function Detalle({ params, searchParams }: { params: Promis
                 <div><dt>Razón social</dt><dd>{p.confidential.legalName ?? "—"}</dd></div>
                 <div><dt>Ciudad</dt><dd>{p.confidential.city ?? "—"}</dd></div>
               </dl>
-              {buyerView && <Link href={`/oportunidades/${code}/espacio`} className="btn btn-secondary mt-16"><Icon name="lock_open" />Abrir espacio privado</Link>}
+              {buyerView && <Link prefetch={false} href={`/oportunidades/${code}/espacio`} className="btn btn-secondary mt-16"><Icon name="lock_open" />Abrir espacio privado</Link>}
             </section>
           )}
 
@@ -176,8 +176,8 @@ export default async function Detalle({ params, searchParams }: { params: Promis
                 <div className="h2 mt-8" style={{ fontSize: 20 }}>Usted gestiona esta oportunidad</div>
                 <p className="small c-lead mt-8">Decida quién accede, responda preguntas y administre documentos desde el panel del vendedor.</p>
                 <div className="stack gap-8 mt-24">
-                  <Link href={`/venta/${l.id}`} className="btn btn-block">Gestionar interesados</Link>
-                  <Link href={`/oportunidades/${code}?vista=comprador`} className="btn btn-secondary btn-block">Ver como comprador</Link>
+                  <Link prefetch={false} href={`/venta/${l.id}`} className="btn btn-block">Gestionar interesados</Link>
+                  <Link prefetch={false} href={`/oportunidades/${code}?vista=comprador`} className="btn btn-secondary btn-block">Ver como comprador</Link>
                 </div>
               </>
             ) : ctx.isAdmin ? (
@@ -185,7 +185,7 @@ export default async function Detalle({ params, searchParams }: { params: Promis
                 <div className="label-caps">Administración</div>
                 <div className="h2 mt-8" style={{ fontSize: 20 }}>Vista de auditoría</div>
                 <p className="small c-lead mt-8">El equipo puede revisar la publicación completa. Las decisiones de acceso corresponden al vendedor; el administrador solo interviene de forma excepcional.</p>
-                <Link href={`/admin/accesos?op=${code}`} className="btn btn-secondary btn-block mt-24">Ver accesos de {code}</Link>
+                <Link prefetch={false} href={`/admin/accesos?op=${code}`} className="btn btn-secondary btn-block mt-24">Ver accesos de {code}</Link>
               </>
             ) : (
               <>
@@ -200,11 +200,11 @@ export default async function Detalle({ params, searchParams }: { params: Promis
                   {!e && user.canBuy && l.status === "publicada" && (
                     <ActionButton action={requestInfoAction.bind(null, code)} className="btn btn-lg btn-block" icon="mail">Solicitar información</ActionButton>
                   )}
-                  {!e && !user.canBuy && <Banner tone="info">Active el perfil de compra en <Link href="/perfil">Mi perfil</Link> para solicitar información.</Banner>}
-                  {e?.ndaStatus === "pendiente_firma" && <Link href={`/oportunidades/${code}/nda`} className="btn btn-lg btn-block"><Icon name="edit_document" />Revisar y firmar NDA</Link>}
-                  {e?.ndaStatus === "firmado" && e.accessStatus === "autorizado" && <Link href={`/oportunidades/${code}/espacio`} className="btn btn-lg btn-block"><Icon name="lock_open" />Abrir espacio privado</Link>}
+                  {!e && !user.canBuy && <Banner tone="info">Active el perfil de compra en <Link prefetch={false} href="/perfil">Mi perfil</Link> para solicitar información.</Banner>}
+                  {e?.ndaStatus === "pendiente_firma" && <Link prefetch={false} href={`/oportunidades/${code}/nda`} className="btn btn-lg btn-block"><Icon name="edit_document" />Revisar y firmar NDA</Link>}
+                  {e?.ndaStatus === "firmado" && e.accessStatus === "autorizado" && <Link prefetch={false} href={`/oportunidades/${code}/espacio`} className="btn btn-lg btn-block"><Icon name="lock_open" />Abrir espacio privado</Link>}
                   {e?.ndaStatus === "firmado" && e.accessStatus !== "autorizado" && (
-                    <Link href={`/oportunidades/${code}/nda`} className="btn btn-secondary btn-block">Ver NDA y estado</Link>
+                    <Link prefetch={false} href={`/oportunidades/${code}/nda`} className="btn btn-secondary btn-block">Ver NDA y estado</Link>
                   )}
                   {e && e.accessStatus !== "none" && <div className="mt-8"><Badge b={ACCESS_BADGE[e.accessStatus]!} /></div>}
                 </div>

@@ -26,13 +26,13 @@ export default async function NdaPage({ params }: { params: Promise<{ code: stri
 
   return (
     <div className="page page-narrow">
-      <Link href={`/oportunidades/${code}`} className="back"><Icon name="arrow_back" />{code}</Link>
+      <Link prefetch={false} href={`/oportunidades/${code}`} className="back"><Icon name="arrow_back" />{code}</Link>
       <div className="eyebrow">Acuerdo de confidencialidad · {code} · {l.sector}</div>
       <h1 className="h1-lg" style={{ margin: "12px 0 28px" }}>Confidencialidad y NDA</h1>
 
       {!e ? (
         <Banner tone="info">
-          Primero solicite información desde la <Link href={`/oportunidades/${code}`}>ficha de la oportunidad</Link>; después podrá revisar y firmar el NDA.
+          Primero solicite información desde la <Link prefetch={false} href={`/oportunidades/${code}`}>ficha de la oportunidad</Link>; después podrá revisar y firmar el NDA.
         </Banner>
       ) : e.ndaStatus === "pendiente_firma" ? (
         e.nda?.method === "proveedor" && e.nda.status === "pendiente" ? (
@@ -62,7 +62,7 @@ export default async function NdaPage({ params }: { params: Promise<{ code: stri
                 {e.accessStatus === "revocado" && "El vendedor revocó el acceso. Los documentos ya no están disponibles."}
               </p>
               {e.accessNote && <p className="small c-lead mt-8">Nota: {e.accessNote}</p>}
-              {e.accessStatus === "autorizado" && <Link href={`/oportunidades/${code}/espacio`} className="btn mt-16"><Icon name="lock_open" />Abrir espacio privado</Link>}
+              {e.accessStatus === "autorizado" && <Link prefetch={false} href={`/oportunidades/${code}/espacio`} className="btn mt-16"><Icon name="lock_open" />Abrir espacio privado</Link>}
             </div>
             {e.nda && (
               <div className="card">

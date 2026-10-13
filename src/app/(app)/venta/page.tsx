@@ -27,7 +27,7 @@ export default async function Venta() {
         </div>
         {seller && <ActionButton action={createListingAction} className="btn btn-lg" icon="add">Nueva publicación</ActionButton>}
       </div>
-      {!seller && <div className="mb-24"><Banner tone="info">Su perfil no tiene habilitada la venta. Puede activarla en <Link href="/perfil">Mi perfil</Link>.</Banner></div>}
+      {!seller && <div className="mb-24"><Banner tone="info">Su perfil no tiene habilitada la venta. Puede activarla en <Link prefetch={false} href="/perfil">Mi perfil</Link>.</Banner></div>}
       {listings.length === 0 ? (
         <Empty icon="storefront" title="Aún no tiene publicaciones" text="Cree un borrador: puede guardarlo y completarlo por partes. Nuestro equipo lo revisa antes de publicarlo de forma anónima.">
           {seller && <ActionButton action={createListingAction} className="btn" icon="add">Crear borrador</ActionButton>}
@@ -56,8 +56,8 @@ export default async function Venta() {
                 <Badge b={LISTING_BADGE[l.status]!} />
                 <span className="small" style={{ minWidth: 200 }}>{meta}</span>
                 <div className="row-actions">
-                  {editable && <Link href={`/venta/${l.id}/editar?paso=${Math.min(l.step, 6)}`} className="btn btn-sm">{l.status === "cambios" ? "Corregir" : "Continuar borrador"}</Link>}
-                  <Link href={`/venta/${l.id}`} className="btn btn-secondary btn-sm">{l.status === "publicada" || l.status === "retirada" ? "Gestionar interesados" : "Ver detalle"}</Link>
+                  {editable && <Link prefetch={false} href={`/venta/${l.id}/editar?paso=${Math.min(l.step, 6)}`} className="btn btn-sm">{l.status === "cambios" ? "Corregir" : "Continuar borrador"}</Link>}
+                  <Link prefetch={false} href={`/venta/${l.id}`} className="btn btn-secondary btn-sm">{l.status === "publicada" || l.status === "retirada" ? "Gestionar interesados" : "Ver detalle"}</Link>
                 </div>
               </div>
             );

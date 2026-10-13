@@ -88,19 +88,57 @@ design/                             prototipo, guía y recursos de marca de refe
 | **Texto del NDA, aviso de privacidad y términos** | **Pendientes del área jurídica.** El NDA es el texto de ejemplo del prototipo, rotulado como tal. |
 | **Correo transaccional** | **Requiere proveedor.** Sin él, los correos quedan en Admin › Correos y el enlace de invitación se muestra al administrador. Punto de integración: `src/lib/notify.ts`. |
 | Antivirus de archivos, verificación en dos pasos, calendario y videollamada | No incluidos; señalados en Admin › Integraciones. |
-| Almacenamiento cifrado en la nube | Hoy, disco local. Para producción, sustituya `storeFile/readStored` por S3, GCS o un servicio equivalente con cifrado en reposo. |
+| Almacenamiento de archivos | Disco local en desarrollo; Supabase Storage (bucket privado) en Vercel. |
 | Visor protegido | Los PDF y las imágenes se abren en el visor del navegador con marca de agua. Un visor que impida capturas no es posible en la web; XLSX y DOCX en modo lectura requieren conversión a PDF (pendiente). |
 
 No se muestran certificaciones ni distintivos de verificación.
 
-## Publicar
+## Publicar en Vercel + Supabase (recomendado)
 
-1. **Base de datos.** En `prisma/schema.prisma` cambie `provider = "sqlite"` por `"postgresql"` y defina `DATABASE_URL`. Ejecute `npx prisma migrate dev --name init` una vez en local y `npx prisma migrate deploy` en el servidor.
-2. **Variables.** Revise `.env.example`. Como mínimo: `APP_SECRET` (64 caracteres aleatorios), `APP_URL` con https, `SHOW_DEMO_DATA=false` y `STORAGE_DIR` en un volumen persistente con respaldo.
-3. **Datos.** No ejecute el seed en producción. Si lo usó, ejecute `npm run demo:purge -- --confirmar`. Cree el primer administrador con `npm run admin:create -- correo@redwood… "Nombre"`.
-4. **Compilar y arrancar.** `npm run build && npm start` (puerto 3000) detrás de un proxy con HTTPS. Configure `TZ=America/Mexico_City` para que los horarios de reunión coincidan.
-5. **Hosting.** Necesita un servidor Node con disco persistente (VM, contenedor, Render, Railway, Fly.io…). Vercel sirve para la aplicación, pero entonces los archivos deben ir a almacenamiento externo (paso de la tabla anterior).
-6. **Antes de abrir a usuarios reales.** Conecte correo y firma, reemplace los textos legales, configure respaldos de la base y del almacenamiento y revise la bitácora.
+La plataforma ya está preparada: en Vercel usa PostgreSQL de Supabase para los datos y
+Supabase Storage (bucket **privado**) para los archivos. La compilación (`npm run vercel-build`)
+genera el esquema PostgreSQL, lo aplica a la base, carga los datos de demostración si la base está
+vacía y `SEED_DEMO=true`, y compila. Probado de punta a punta con PostgreSQL 16: las 15 pruebas pasan.
+
+**1. Supabase** (supabase.com → New project; anote la contraseña de la base)
+- *Project Settings → Database → Connection string*:
+  - **Transaction pooler** (puerto 6543) → `DATABASE_URL`, añadiendo al final `?pgbouncer=true&connection_limit=1`
+  - **Session pooler** (puerto 5432) → `DIRECT_URL`
+  (reemplace `[YOUR-PASSWORD]` por la contraseña de la base)
+- *Project Settings → API*: **Project URL** → `SUPABASE_URL`; **service_role** (secreta) → `SUPABASE_SERVICE_ROLE_KEY`.
+- No hace falta crear el bucket: la plataforma crea `documentos-privados` como privado y se niega a usar uno público.
+
+**2. Vercel** (vercel.com → Add New → Project → importe `RedwoodCP/Pagina-web-IB`)
+- *Settings → Git → Production Branch*: `claude/business-marketplace-platform-2p014z` (o la rama donde fusione el código).
+- *Environment Variables*:
+
+| Variable | Valor |
+|---|---|
+| `DATABASE_URL` | Transaction pooler + `?pgbouncer=true&connection_limit=1` |
+| `DIRECT_URL` | Session pooler |
+| `SUPABASE_URL` | Project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | service_role |
+| `APP_SECRET` | 64 caracteres aleatorios (`openssl rand -hex 32` o cualquier generador) |
+| `APP_URL` | la dirección que le asigne Vercel, p. ej. `https://pagina-web-ib.vercel.app` |
+| `SHOW_DEMO_DATA` / `SEED_DEMO` | `true` para la demostración; `false` al operar con datos reales |
+
+- *Deploy*. Al terminar, abra la dirección y entre con las cuentas de demostración.
+- Si `APP_URL` cambia (dominio propio), actualícela y vuelva a desplegar: se usa en los enlaces de invitación.
+
+**Límites en Vercel:** cada archivo admite hasta 4 MB (límite de Vercel para el cuerpo de una petición;
+`MAX_UPLOAD_MB` lo ajusta en otros servidores). Para archivos grandes, el siguiente paso es la carga
+directa a Supabase con URL firmada de subida.
+
+**Pasar a datos reales:** `SHOW_DEMO_DATA=false` y `SEED_DEMO=false`; elimine los datos demo
+(`npm run demo:purge -- --confirmar` con las variables de Supabase en su terminal) y cree el primer
+administrador (`npm run admin:create -- correo "Nombre"`). Conecte correo y firma, y reemplace los textos legales.
+
+## Publicar en otro servidor
+
+Cualquier servidor Node 20+ sirve: con las mismas variables use `npm run vercel-build && npm start`.
+Sin Supabase Storage, defina `STORAGE_DIR` en un disco persistente con respaldo (la compilación de Vercel
+exige Supabase porque su disco no es persistente). La zona horaria se fija con `APP_TIMEZONE`
+(por defecto `America/Mexico_City`).
 
 ## Pendiente de decisión
 

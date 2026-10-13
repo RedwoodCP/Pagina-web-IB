@@ -43,7 +43,7 @@ export default async function Catalogo({ searchParams }: { searchParams: Promise
             <Empty icon="inventory_2" title="Aún no hay oportunidades publicadas" text="Le avisaremos cuando nuestro equipo apruebe nuevas oportunidades." />
           ) : (
             <Empty icon="filter_alt_off" title="Ninguna oportunidad coincide con estos filtros" text="Pruebe con menos criterios o amplíe los rangos de ventas, EBITDA o precio. Los filtros de monto solo consideran oportunidades en la moneda seleccionada.">
-              <Link href="/oportunidades" className="btn">Limpiar filtros</Link>
+              <Link prefetch={false} href="/oportunidades" className="btn">Limpiar filtros</Link>
             </Empty>
           )
         ) : (

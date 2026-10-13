@@ -158,7 +158,7 @@ export function NdaFlow({ code, sections, version, defaults, signature, action }
 
         <div className="form-actions">
           {step === 1 ? (
-            <Link href={`/oportunidades/${code}`} className="btn btn-secondary btn-lg">Volver a la oportunidad</Link>
+            <Link prefetch={false} href={`/oportunidades/${code}`} className="btn btn-secondary btn-lg">Volver a la oportunidad</Link>
           ) : (
             <button type="button" className="btn btn-secondary btn-lg" onClick={() => setStep(step - 1)}>Atrás</button>
           )}

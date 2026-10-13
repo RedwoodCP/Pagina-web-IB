@@ -22,7 +22,7 @@ export function AdminTabs({ counts }: { counts: Record<string, number> }) {
       <h1 className="h1-lg" style={{ margin: "12px 0 28px" }}>{cur[2]}</h1>
       <nav className="tabs mb-24" aria-label="Administración">
         {TABS.map(([k, label]) => (
-          <Link key={k} href={`/admin/${k}`} className="tab" aria-current={cur[0] === k ? "page" : undefined}>
+          <Link prefetch={false} key={k} href={`/admin/${k}`} className="tab" aria-current={cur[0] === k ? "page" : undefined}>
             {label}
             {!!counts[k] && <span className="count-pill">{counts[k]}</span>}
           </Link>

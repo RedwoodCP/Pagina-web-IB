@@ -11,6 +11,7 @@ import { loadListing } from "@/lib/access";
 import { invalid, okEmail, str, type ActionState } from "@/lib/action";
 import { INTEREST_LEVELS, NDA_VALIDITY_MONTHS, NDA_VERSION } from "@/lib/domain";
 import { ndaText, ndaHash } from "@/lib/nda";
+import { parseLocalDateTime } from "@/lib/format";
 import { createEnvelope, signatureStatus } from "@/lib/signature";
 
 async function teamIds(listingId: string) {
@@ -161,16 +162,18 @@ export async function requestMeetingAction(code: string, _: ActionState, fd: For
   const f: Record<string, string> = {};
   if (!slots.length) f.slot1 = "Proponga al menos un horario.";
   const now = Date.now();
+  const iso: string[] = [];
   slots.forEach((s, i) => {
-    const t = Date.parse(s);
-    if (Number.isNaN(t)) f["slot" + (i + 1)] = "Fecha no válida.";
-    else if (t < now) f["slot" + (i + 1)] = "Elija una fecha futura.";
+    const t = parseLocalDateTime(s);
+    if (!t) f["slot" + (i + 1)] = "Fecha no válida.";
+    else if (t.getTime() < now) f["slot" + (i + 1)] = "Elija una fecha futura.";
+    else iso.push(t.toISOString());
   });
   if (!["video", "presencial", "telefono"].includes(format)) f.format = "Seleccione el formato.";
   if (Object.keys(f).length) return invalid(f, fd);
   const open = await db.meetingRequest.count({ where: { engagementId: c.engagement.id, status: "solicitada" } });
   if (open) return { error: "Ya tiene una solicitud de reunión pendiente de respuesta." };
-  const m = await db.meetingRequest.create({ data: { engagementId: c.engagement.id, slots: JSON.stringify(slots), format, message: message || null } });
+  const m = await db.meetingRequest.create({ data: { engagementId: c.engagement.id, slots: JSON.stringify(iso), format, message: message || null } });
   await audit(c.user.id, "meeting.requested", "meeting", m.id, { listingId: c.listing.id });
   await notify(await teamIds(c.listing.id), `Solicitud de reunión en ${code}.`, `/venta/${c.listing.id}?tab=reuniones`);
   revalidatePath(`/oportunidades/${code}/espacio`);

@@ -19,7 +19,7 @@ export function SideNav({ sections }: { sections: NavSection[] }) {
         <div key={s.title}>
           <div className="nav-title">{s.title}</div>
           {s.items.map((it) => (
-            <Link key={it.href} href={it.href} className="nav-item" aria-current={isActive(path, it) ? "page" : undefined}>
+            <Link prefetch={false} key={it.href} href={it.href} className="nav-item" aria-current={isActive(path, it) ? "page" : undefined}>
               <span aria-hidden="true" className="ms">{it.icon}</span>
               <span className="grow">{it.label}</span>
               {!!it.count && <span className="count-pill">{it.count}</span>}
@@ -36,7 +36,7 @@ export function BottomNav({ items }: { items: NavItem[] }) {
   return (
     <nav className="bottom-nav" aria-label="Navegación móvil">
       {items.map((it) => (
-        <Link key={it.href} href={it.href} aria-current={isActive(path, it) ? "page" : undefined}>
+        <Link prefetch={false} key={it.href} href={it.href} aria-current={isActive(path, it) ? "page" : undefined}>
           <span aria-hidden="true" className="ms">{it.icon}</span>
           {it.label}
         </Link>

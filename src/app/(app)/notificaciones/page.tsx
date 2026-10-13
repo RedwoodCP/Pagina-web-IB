@@ -30,7 +30,7 @@ export default async function Notificaciones() {
             <div key={n.id} className="row">
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: n.readAt ? "transparent" : "#1A1A1A", flex: "none" }} aria-label={n.readAt ? undefined : "Sin leer"} />
               <div className="row-main">
-                {n.href ? <Link href={n.href} style={{ color: "inherit" }}>{n.text}</Link> : n.text}
+                {n.href ? <Link prefetch={false} href={n.href} style={{ color: "inherit" }}>{n.text}</Link> : n.text}
                 <div className="small c-lead mt-4">{fmtDateTime(n.createdAt)}</div>
               </div>
             </div>

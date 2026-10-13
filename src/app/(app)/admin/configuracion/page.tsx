@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { env } from "@/lib/env";
 import { signatureStatus } from "@/lib/signature";
+import { storageMode } from "@/lib/storage";
+import { MAX_FILE_MB } from "@/lib/files";
 import { Icon } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Integraciones" };
@@ -10,7 +12,14 @@ export default function Configuracion() {
   const rows: [string, string, boolean, string][] = [
     ["Firma electrónica del NDA", sig.label, sig.mode === "proveedor" && sig.configured, "SIGNATURE_PROVIDER, SIGNATURE_API_KEY, SIGNATURE_WEBHOOK_SECRET · adaptador en src/lib/signature.ts"],
     ["Correo transaccional", env.emailProvider === "none" ? "Sin proveedor: los correos quedan en la bandeja de salida" : `Proveedor «${env.emailProvider}» (adaptador pendiente)`, false, "EMAIL_PROVIDER, EMAIL_API_KEY, EMAIL_FROM · src/lib/notify.ts"],
-    ["Almacenamiento de archivos", `Disco local del servidor (${env.storageDir}), fuera de /public, con enlaces firmados de 5 minutos`, true, "Para producción: almacenamiento cifrado (S3/GCS con SSE) · src/lib/files.ts"],
+    [
+      "Almacenamiento de archivos",
+      storageMode() === "supabase"
+        ? `Supabase Storage, bucket privado; enlaces firmados de 5 minutos desde la plataforma; máximo ${MAX_FILE_MB} MB por archivo`
+        : `Disco local del servidor (${env.storageDir}), fuera de /public, con enlaces firmados de 5 minutos`,
+      true,
+      "SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY · src/lib/storage.ts",
+    ],
     ["Antivirus de archivos", "No configurado: se valida tipo, tamaño y firma binaria, no malware", false, "Integrar ClamAV o servicio equivalente antes de storeFile()"],
     ["Verificación en dos pasos", "No configurada", false, "Pendiente: TOTP o llave de seguridad"],
     ["Calendario / videollamada", "No configurado: las reuniones se coordinan por mensaje", false, "Integración opcional (Google Calendar, Microsoft 365)"],

@@ -20,7 +20,7 @@ export default async function Revisar({ params }: { params: Promise<{ id: string
   const margin = l.sales && l.ebitda != null ? (l.ebitda / l.sales) * 100 : null;
   return (
     <>
-      <Link href="/admin/publicaciones" className="back"><Icon name="arrow_back" />Publicaciones</Link>
+      <Link prefetch={false} href="/admin/publicaciones" className="back"><Icon name="arrow_back" />Publicaciones</Link>
       <div className="hstack between gap-16 mb-24" style={{ flexWrap: "wrap" }}>
         <div>
           <div className="h2">{l.code} · {l.legalName}</div>

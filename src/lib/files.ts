@@ -1,11 +1,12 @@
 import "server-only";
-import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { PDFDocument, StandardFonts, degrees, rgb } from "pdf-lib";
 import { env } from "./env";
-import { hmac, randomToken, safeEqual } from "./crypto";
+import { hmac, safeEqual } from "./crypto";
+import { getObject, putObject, removeObject } from "./storage";
 
-export const MAX_FILE_BYTES = 25 * 1024 * 1024;
+// En Vercel el cuerpo de una petición está limitado a ~4.5 MB; allí el máximo por defecto es 4 MB.
+export const MAX_FILE_MB = Number(process.env.MAX_UPLOAD_MB) || (process.env.VERCEL ? 4 : 25);
+export const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024;
 export const LINK_TTL_SECONDS = 300;
 
 const TYPES: Record<string, { mime: string; magic: (b: Buffer) => boolean }> = {
@@ -24,7 +25,7 @@ const TYPES: Record<string, { mime: string; magic: (b: Buffer) => boolean }> = {
   },
 };
 
-export const ACCEPTED_LABEL = "PDF, XLSX, DOCX, JPG o PNG (máx. 25 MB)";
+export const ACCEPTED_LABEL = `PDF, XLSX, DOCX, JPG o PNG (máx. ${MAX_FILE_MB} MB)`;
 export const ACCEPT_ATTR = ".pdf,.xlsx,.docx,.jpg,.jpeg,.png";
 
 /** Valida extensión, tamaño y firma binaria. Devuelve el MIME o un mensaje de error. */
@@ -34,31 +35,14 @@ export function validateUpload(name: string, buf: Buffer, onlyPdf = false): { mi
   if (onlyPdf && ext !== "pdf") return { error: "El teaser debe ser un PDF." };
   if (!t) return { error: `Formato no admitido. Use ${ACCEPTED_LABEL}.` };
   if (buf.length === 0) return { error: "El archivo está vacío." };
-  if (buf.length > MAX_FILE_BYTES) return { error: "El archivo supera 25 MB." };
+  if (buf.length > MAX_FILE_BYTES) return { error: `El archivo supera ${MAX_FILE_MB} MB.` };
   if (!t.magic(buf)) return { error: "El contenido del archivo no corresponde a su extensión." };
   return { mime: t.mime };
 }
 
-function dir() {
-  return path.resolve(process.cwd(), env.storageDir);
-}
-
-export async function storeFile(buf: Buffer): Promise<string> {
-  await mkdir(dir(), { recursive: true });
-  const key = randomToken(24);
-  await writeFile(path.join(dir(), key), buf, { mode: 0o600 });
-  return key;
-}
-
-export async function readStored(key: string): Promise<Buffer> {
-  if (!/^[A-Za-z0-9_-]+$/.test(key)) throw new Error("clave inválida");
-  return readFile(path.join(dir(), key));
-}
-
-export async function deleteStored(key: string) {
-  if (!/^[A-Za-z0-9_-]+$/.test(key)) return;
-  await unlink(path.join(dir(), key)).catch(() => {});
-}
+export const storeFile = putObject;
+export const readStored = getObject;
+export const deleteStored = removeObject;
 
 // ---------------------------------------------------------------------------
 // Enlaces temporales firmados. No existen URLs públicas permanentes: cada enlace

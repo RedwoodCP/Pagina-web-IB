@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { buildCtx } from "@/lib/access";
 import { ACCESS_BADGE, DOC_CATEGORIES, INTEREST_LEVELS, LISTING_BADGE, MEETING_BADGE, NDA_BADGE, ORG_TYPES } from "@/lib/domain";
 import { fmtDate, fmtDateTime, fmtSize, parseJson } from "@/lib/format";
-import { ACCEPT_ATTR } from "@/lib/files";
+import { MAX_FILE_MB, ACCEPT_ATTR } from "@/lib/files";
 import { Badge, Banner, DemoFlag, Empty, Icon } from "@/components/ui";
 import { ActionButton } from "@/components/confirm";
 import { ActionForm, Field, Select, Submit, TextArea } from "@/components/form";
@@ -63,7 +63,7 @@ export default async function Gestion({ params, searchParams }: { params: Promis
 
   return (
     <div className="page">
-      <Link href="/venta" className="back"><Icon name="arrow_back" />{user.isAdvisor ? "Mis mandatos" : "Mis publicaciones"}</Link>
+      <Link prefetch={false} href="/venta" className="back"><Icon name="arrow_back" />{user.isAdvisor ? "Mis mandatos" : "Mis publicaciones"}</Link>
       <div className="page-head">
         <div style={{ minWidth: 0 }}>
           <div className="eyebrow hstack gap-8">{l.code} · {l.sector ?? "Sin sector"} · {l.region ?? "Sin región"} {l.isDemo && <DemoFlag />}</div>
@@ -72,8 +72,8 @@ export default async function Gestion({ params, searchParams }: { params: Promis
         </div>
         <div className="wrap-gap">
           <Badge b={LISTING_BADGE[l.status]!} />
-          {editable && can && <Link href={`/venta/${id}/editar?paso=${Math.min(l.step, 6)}`} className="btn">Editar</Link>}
-          {(l.status === "publicada" || l.status === "revision") && <Link href={`/oportunidades/${l.code}?vista=comprador`} className="btn btn-secondary">Ver como comprador</Link>}
+          {editable && can && <Link prefetch={false} href={`/venta/${id}/editar?paso=${Math.min(l.step, 6)}`} className="btn">Editar</Link>}
+          {(l.status === "publicada" || l.status === "revision") && <Link prefetch={false} href={`/oportunidades/${l.code}?vista=comprador`} className="btn btn-secondary">Ver como comprador</Link>}
           {can && (l.status === "publicada" || l.status === "revision") && (
             <ActionButton
               action={withdrawListingAction.bind(null, id)}
@@ -93,7 +93,7 @@ export default async function Gestion({ params, searchParams }: { params: Promis
 
       <nav className="tabs mb-24" aria-label="Secciones">
         {TABS.map(([k, label]) => (
-          <Link key={k} href={`/venta/${id}${k === "interesados" ? "" : `?tab=${k}`}`} className="tab" aria-current={tab === k ? "page" : undefined}>
+          <Link prefetch={false} key={k} href={`/venta/${id}${k === "interesados" ? "" : `?tab=${k}`}`} className="tab" aria-current={tab === k ? "page" : undefined}>
             {label}
             {!!count[k] && <span className="count-pill">{count[k]}</span>}
           </Link>
@@ -210,7 +210,7 @@ export default async function Gestion({ params, searchParams }: { params: Promis
           </section>
           {can && (
             <section className="card" style={{ padding: 20 }}>
-              <UploadForm action={uploadDocumentAction.bind(null, id, "documento")} accept={ACCEPT_ATTR} categories={DOC_CATEGORIES} label="Agregar documento" hint="Visible solo para compradores autorizados, según el permiso elegido." />
+              <UploadForm maxMb={MAX_FILE_MB} action={uploadDocumentAction.bind(null, id, "documento")} accept={ACCEPT_ATTR} categories={DOC_CATEGORIES} label="Agregar documento" hint="Visible solo para compradores autorizados, según el permiso elegido." />
             </section>
           )}
         </div>

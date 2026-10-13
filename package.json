@@ -13,7 +13,9 @@
     "demo:purge": "tsx scripts/purge-demo.ts",
     "test:e2e": "playwright test",
     "admin:create": "tsx scripts/create-admin.ts",
-    "setup": "tsx scripts/setup.ts"
+    "setup": "tsx scripts/setup.ts",
+    "vercel-build": "tsx scripts/vercel-build.ts",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

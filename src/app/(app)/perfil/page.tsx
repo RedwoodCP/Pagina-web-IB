@@ -16,7 +16,7 @@ export default async function Perfil() {
     <section className="card">
       <div className="hstack between" style={{ padding: "18px 20px 0" }}>
         <h2 className="h2" style={{ fontSize: 18 }}>{t}</h2>
-        {!u.isAdmin && <Link href={`/perfil/configuracion?paso=${n}`} className="btn btn-secondary btn-sm"><Icon name="edit" />Editar</Link>}
+        {!u.isAdmin && <Link prefetch={false} href={`/perfil/configuracion?paso=${n}`} className="btn btn-secondary btn-sm"><Icon name="edit" />Editar</Link>}
       </div>
       <dl className="kv mt-12">{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v || "—"}</dd></div>)}</dl>
     </section>

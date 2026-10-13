@@ -33,7 +33,7 @@ export default async function Nueva() {
       {user.canSell || user.isAdvisor ? (
         <ActionButton action={createListingAction} className="btn btn-lg" icon="add">Crear borrador</ActionButton>
       ) : (
-        <Banner tone="info">Active el perfil de venta en <Link href="/perfil">Mi perfil</Link> para publicar una empresa.</Banner>
+        <Banner tone="info">Active el perfil de venta en <Link prefetch={false} href="/perfil">Mi perfil</Link> para publicar una empresa.</Banner>
       )}
     </div>
   );

@@ -13,6 +13,7 @@ export function UploadForm({
   categories,
   label,
   hint,
+  maxMb = 25,
 }: {
   action: (p: ActionState, fd: FormData) => Promise<ActionState>;
   accept: string;
@@ -20,6 +21,7 @@ export function UploadForm({
   categories?: readonly string[];
   label: string;
   hint: string;
+  maxMb?: number;
 }) {
   const [state, run, pending] = useActionState(action, {});
   const [name, setName] = useState<string | null>(null);
@@ -47,7 +49,7 @@ export function UploadForm({
             if (!f) return setName(null);
             const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
             if (!accept.split(",").includes("." + ext)) setClientErr(`Formato no admitido (.${ext}). Use ${accept.replaceAll(",", ", ")}.`);
-            else if (f.size > 25 * 1024 * 1024) setClientErr("El archivo supera 25 MB.");
+            else if (f.size > maxMb * 1024 * 1024) setClientErr(`El archivo supera ${maxMb} MB.`);
             setName(f.name);
           }}
         />

@@ -30,7 +30,7 @@ export default async function Publicaciones({ searchParams }: { searchParams: Pr
               </div>
               <span className="small c-lead">{l.status === "revision" ? `Enviada ${fmtDate(l.submittedAt, false)}` : `${l._count.engagements} interesados`}</span>
               <Badge b={LISTING_BADGE[l.status]!} />
-              <Link href={`/admin/publicaciones/${l.id}`} className={l.status === "revision" ? "btn btn-sm" : "btn btn-secondary btn-sm"}>{l.status === "revision" ? "Revisar" : "Ver"}</Link>
+              <Link prefetch={false} href={`/admin/publicaciones/${l.id}`} className={l.status === "revision" ? "btn btn-sm" : "btn btn-secondary btn-sm"}>{l.status === "revision" ? "Revisar" : "Ver"}</Link>
             </div>
           ))}
         </div>

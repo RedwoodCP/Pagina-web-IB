@@ -11,3 +11,4 @@ storage/
 test-results/
 playwright-report/
 storage-test/
+prisma/postgres.prisma

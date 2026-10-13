@@ -3,14 +3,12 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { createHash, randomBytes } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { putObject, storageMode } from "../src/lib/storage";
 
 const db = new PrismaClient();
 const sha = (v: string) => createHash("sha256").update(v).digest("hex");
 const DEMO_PASSWORD = "Demo2026segura";
-const STORAGE = path.resolve(process.cwd(), process.env.STORAGE_DIR || "./storage");
 const ascii = (v: string) => v.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[–—]/g, "-");
 const daysAgo = (n: number) => new Date(Date.now() - n * 86400_000);
 const daysAhead = (n: number) => new Date(Date.now() + n * 86400_000);
@@ -28,12 +26,7 @@ async function demoPdf(title: string, lines: string[]): Promise<Buffer> {
   return Buffer.from(await pdf.save());
 }
 
-async function store(buf: Buffer) {
-  await mkdir(STORAGE, { recursive: true });
-  const key = randomBytes(24).toString("base64url");
-  await writeFile(path.join(STORAGE, key), buf, { mode: 0o600 });
-  return key;
-}
+const store = (buf: Buffer) => putObject(buf);
 
 const OPPS = [
   { code: "RW-1042", sector: "Manufactura", title: "Fabricante de empaques flexibles para consumo masivo", region: "Bajío", sales: 18.4, ebitda: 3.1, pmin: 21, pmax: 24, deal: "Venta mayoritaria", teaser: true, years: 22, emp: "150–250", pub: 11, summary: "Empresa familiar con dos plantas y contratos multianuales con marcas de alimentos y cuidado personal.", hl: ["Más de 40 clientes recurrentes", "Capacidad instalada utilizada al 68%", "Fundadores dispuestos a una transición de 18 meses"], legal: "Empaques Altiplano, S.A. de C.V.", city: "León, Guanajuato", visPrice: "miembros" },
@@ -49,7 +42,7 @@ const OPPS = [
 ];
 
 async function main() {
-  console.log("Creando datos de demostración…");
+  console.log(`Creando datos de demostración… (archivos en: ${storageMode()})`);
   const hash = await bcrypt.hash(DEMO_PASSWORD, 12);
 
   const org = async (name: string, type: string) => db.organization.create({ data: { name, type, country: "México", isDemo: true } });

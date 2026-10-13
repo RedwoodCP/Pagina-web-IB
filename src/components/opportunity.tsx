@@ -38,7 +38,7 @@ export function FavButton({ code, saved }: { code: string; saved: boolean }) {
 
 export function ProcessCta({ o, isAdmin }: { o: CatalogItem; isAdmin: boolean }) {
   const base = `/oportunidades/${o.code}`;
-  if (o.isOwn) return <Link href={`/venta/${o.id}`} className="btn btn-secondary"><Icon name="storefront" />Gestionar</Link>;
+  if (o.isOwn) return <Link prefetch={false} href={`/venta/${o.id}`} className="btn btn-secondary"><Icon name="storefront" />Gestionar</Link>;
   if (isAdmin) return null;
   if (o.nda === "none")
     return (
@@ -46,9 +46,9 @@ export function ProcessCta({ o, isAdmin }: { o: CatalogItem; isAdmin: boolean })
         Solicitar información
       </ActionButton>
     );
-  if (o.nda === "pendiente_firma") return <Link href={`${base}/nda`} className="btn btn-secondary"><Icon name="edit_document" />Firmar NDA</Link>;
-  if (o.access === "autorizado") return <Link href={`${base}/espacio`} className="btn btn-secondary"><Icon name="lock_open" />Abrir espacio privado</Link>;
-  return <Link href={`${base}/nda`} className="btn btn-secondary"><Icon name="schedule" />Ver estado</Link>;
+  if (o.nda === "pendiente_firma") return <Link prefetch={false} href={`${base}/nda`} className="btn btn-secondary"><Icon name="edit_document" />Firmar NDA</Link>;
+  if (o.access === "autorizado") return <Link prefetch={false} href={`${base}/espacio`} className="btn btn-secondary"><Icon name="lock_open" />Abrir espacio privado</Link>;
+  return <Link prefetch={false} href={`${base}/nda`} className="btn btn-secondary"><Icon name="schedule" />Ver estado</Link>;
 }
 
 export function OpportunityCard({ o, isAdmin }: { o: CatalogItem; isAdmin: boolean }) {
@@ -66,7 +66,7 @@ export function OpportunityCard({ o, isAdmin }: { o: CatalogItem; isAdmin: boole
       <div className="opp-body">
         <div className="opp-head">
           <div className="wrap-gap" style={{ gap: 10 }}>
-            <Link href={`/oportunidades/${o.code}`} className="opp-code" id={`t-${o.code}`}>{o.code}</Link>
+            <Link prefetch={false} href={`/oportunidades/${o.code}`} className="opp-code" id={`t-${o.code}`}>{o.code}</Link>
             {pb && <Badge b={pb} />}
             {o.isOwn && <span className="badge badge-dark"><Icon name="storefront" />Su publicación</span>}
             {o.isDemo && <DemoFlag />}
@@ -101,7 +101,7 @@ export function OpportunityCard({ o, isAdmin }: { o: CatalogItem; isAdmin: boole
           <div className="wrap-gap">
             {!isAdmin && !o.isOwn && <FavButton code={o.code} saved={o.saved} />}
             <ProcessCta o={o} isAdmin={isAdmin} />
-            <Link href={`/oportunidades/${o.code}`} className="btn" style={{ padding: "0 24px" }}>Ver más</Link>
+            <Link prefetch={false} href={`/oportunidades/${o.code}`} className="btn" style={{ padding: "0 24px" }}>Ver más</Link>
           </div>
         </div>
       </div>

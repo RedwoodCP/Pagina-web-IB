@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { buildCtx, toPublicListing } from "@/lib/access";
 import { CURRENCIES, DEAL_TYPES, DOC_CATEGORIES, DOC_PERM_BADGE, EMPLOYEE_RANGES, LISTING_BADGE, REGIONS, SECTORS } from "@/lib/domain";
 import { fmtMoney, fmtPct, fmtSize, parseJson } from "@/lib/format";
-import { ACCEPT_ATTR, ACCEPTED_LABEL } from "@/lib/files";
+import { MAX_FILE_MB, ACCEPT_ATTR, ACCEPTED_LABEL } from "@/lib/files";
 import { identityLeaks } from "@/lib/anonymity";
 import { ActionForm, Check, Field, Select, Submit, TextArea } from "@/components/form";
 import { ActionButton } from "@/components/confirm";
@@ -24,7 +24,7 @@ const LABELS = ["Empresa", "Operación", "Finanzas", "Teaser y documentos", "Vis
 function StepActions({ step, id }: { step: number; id: string }) {
   return (
     <div className="form-actions">
-      {step > 1 ? <Link href={`/venta/${id}/editar?paso=${step - 1}`} className="btn btn-secondary btn-lg">Atrás</Link> : <Link href="/venta" className="btn btn-secondary btn-lg">Salir</Link>}
+      {step > 1 ? <Link prefetch={false} href={`/venta/${id}/editar?paso=${step - 1}`} className="btn btn-secondary btn-lg">Atrás</Link> : <Link prefetch={false} href="/venta" className="btn btn-secondary btn-lg">Salir</Link>}
       <div className="wrap-gap">
         <Submit className="btn btn-secondary btn-lg" name="intent" value="guardar" icon="save" pendingText="Guardando…">Guardar borrador</Submit>
         <Submit className="btn btn-lg" name="intent" value="continuar" pendingText="Validando…">Continuar</Submit>
@@ -86,7 +86,7 @@ export default async function Editar({ params, searchParams }: { params: Promise
           const inner = (<><span className="step-dot">{k < step ? <span aria-hidden="true" className="ms">check</span> : k}</span><span>{lab}</span></>);
           return (
             <li key={lab} className={cls} aria-current={k === step ? "step" : undefined}>
-              {k <= l.step && k !== step ? <Link href={`/venta/${id}/editar?paso=${k}`}>{inner}</Link> : inner}
+              {k <= l.step && k !== step ? <Link prefetch={false} href={`/venta/${id}/editar?paso=${k}`}>{inner}</Link> : inner}
             </li>
           );
         })}
@@ -203,7 +203,7 @@ export default async function Editar({ params, searchParams }: { params: Promise
                 </ActionButton>
               </div>
             ) : (
-              <UploadForm action={uploadDocumentAction.bind(null, id, "teaser")} accept=".pdf" teaser label="Cargar teaser (PDF)" hint="Sin nombre, logotipo, fotografías identificables ni direcciones." />
+              <UploadForm maxMb={MAX_FILE_MB} action={uploadDocumentAction.bind(null, id, "teaser")} accept=".pdf" teaser label="Cargar teaser (PDF)" hint="Sin nombre, logotipo, fotografías identificables ni direcciones." />
             )}
             <div className="label-caps mt-32 mb-8">Documentos para la sala de documentos · solo compradores autorizados</div>
             {docs.length > 0 && (
@@ -220,10 +220,10 @@ export default async function Editar({ params, searchParams }: { params: Promise
               </div>
             )}
             <div className="card" style={{ padding: 20 }}>
-              <UploadForm action={uploadDocumentAction.bind(null, id, "documento")} accept={ACCEPT_ATTR} categories={DOC_CATEGORIES} label="Agregar archivo" hint="Estados financieros, memorándum, contratos… Defina categoría y permiso." />
+              <UploadForm maxMb={MAX_FILE_MB} action={uploadDocumentAction.bind(null, id, "documento")} accept={ACCEPT_ATTR} categories={DOC_CATEGORIES} label="Agregar archivo" hint="Estados financieros, memorándum, contratos… Defina categoría y permiso." />
             </div>
             <div className="form-actions">
-              <Link href={`/venta/${id}/editar?paso=3`} className="btn btn-secondary btn-lg">Atrás</Link>
+              <Link prefetch={false} href={`/venta/${id}/editar?paso=3`} className="btn btn-secondary btn-lg">Atrás</Link>
               <form action={advance.bind(null, id, 5)}>
                 <button className="btn btn-lg">Continuar</button>
               </form>
@@ -247,7 +247,7 @@ export default async function Editar({ params, searchParams }: { params: Promise
               ))}
             </ul>
             <div className="form-actions">
-              <Link href={`/venta/${id}/editar?paso=4`} className="btn btn-secondary btn-lg">Atrás</Link>
+              <Link prefetch={false} href={`/venta/${id}/editar?paso=4`} className="btn btn-secondary btn-lg">Atrás</Link>
               <form action={advance.bind(null, id, 6)}>
                 <button className="btn btn-lg">Continuar</button>
               </form>
@@ -266,7 +266,7 @@ export default async function Editar({ params, searchParams }: { params: Promise
             </div>
             <Check name="confirm">Confirmo que cuento con autorización para compartir esta información y que los datos son correctos según mi conocimiento.</Check>
             <div className="form-actions">
-              <Link href={`/venta/${id}/editar?paso=5`} className="btn btn-secondary btn-lg">Atrás</Link>
+              <Link prefetch={false} href={`/venta/${id}/editar?paso=5`} className="btn btn-secondary btn-lg">Atrás</Link>
               <Submit className="btn btn-lg" icon="send" pendingText="Enviando…">Enviar a revisión</Submit>
             </div>
           </ActionForm>

@@ -25,7 +25,7 @@ export default async function Accesos({ searchParams }: { searchParams: Promise<
     <>
       <p className="c-lead mb-16" style={{ marginTop: -8 }}>
         Las decisiones de acceso corresponden al vendedor o a su asesor. El equipo interviene solo de forma excepcional y siempre con motivo registrado.
-        {sp.op && <> Filtrado por <strong>{sp.op}</strong> · <Link href="/admin/accesos">quitar filtro</Link></>}
+        {sp.op && <> Filtrado por <strong>{sp.op}</strong> · <Link prefetch={false} href="/admin/accesos">quitar filtro</Link></>}
       </p>
       <FilterChips base={`/admin/accesos${sp.op ? `?op=${sp.op}` : ""}`} param="estado" current={estado} options={[["todas", "Todos", all.length], ["pendiente", "Pendientes", n("pendiente")], ["autorizado", "Autorizados", n("autorizado")], ["rechazado", "Rechazados", n("rechazado")], ["revocado", "Revocados", n("revocado")], ["none", "Sin NDA", n("none")]]} />
       {list.length === 0 ? (
@@ -36,7 +36,7 @@ export default async function Accesos({ searchParams }: { searchParams: Promise<
             <div key={e.id} className="row">
               <div className="row-main">
                 <div className="fw6">{e.organizationName ?? e.user.organization?.name ?? e.user.name}</div>
-                <div className="small c-lead mt-4"><Link href={`/oportunidades/${e.listing.code}`}>{e.listing.code}</Link> · {e.listing.title} · {e.user.name} · {fmtDate(e.updatedAt, false)}</div>
+                <div className="small c-lead mt-4"><Link prefetch={false} href={`/oportunidades/${e.listing.code}`}>{e.listing.code}</Link> · {e.listing.title} · {e.user.name} · {fmtDate(e.updatedAt, false)}</div>
               </div>
               <Badge b={e.ndaStatus === "firmado" ? (e.nda?.method === "registro_interno" ? NDA_BADGE.aceptado! : NDA_BADGE.firmado!) : NDA_BADGE.pendiente_firma!} />
               <Badge b={ACCESS_BADGE[e.accessStatus]!} />

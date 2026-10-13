@@ -50,9 +50,9 @@ export default async function Espacio({ params, searchParams }: { params: Promis
           }[e.accessStatus];
     return (
       <div className="page page-narrow">
-        <Link href={`/oportunidades/${code}`} className="back"><Icon name="arrow_back" />{code}</Link>
+        <Link prefetch={false} href={`/oportunidades/${code}`} className="back"><Icon name="arrow_back" />{code}</Link>
         <Empty icon="lock" title="Espacio privado no disponible" text={ctx.isTeam ? "Usted gestiona esta oportunidad: administre documentos e interesados desde el panel del vendedor." : msg}>
-          {ctx.isTeam ? <Link href={`/venta/${l.id}`} className="btn">Ir a la gestión</Link> : <Link href={`/oportunidades/${code}`} className="btn">Ver estado del proceso</Link>}
+          {ctx.isTeam ? <Link prefetch={false} href={`/venta/${l.id}`} className="btn">Ir a la gestión</Link> : <Link prefetch={false} href={`/oportunidades/${code}`} className="btn">Ver estado del proceso</Link>}
         </Empty>
       </div>
     );
@@ -76,7 +76,7 @@ export default async function Espacio({ params, searchParams }: { params: Promis
 
   return (
     <div className="page">
-      <Link href={`/oportunidades/${code}`} className="back"><Icon name="arrow_back" />{code}</Link>
+      <Link prefetch={false} href={`/oportunidades/${code}`} className="back"><Icon name="arrow_back" />{code}</Link>
       <div className="hstack between gap-16" style={{ flexWrap: "wrap", alignItems: "flex-end" }}>
         <div style={{ minWidth: 0 }}>
           <div className="eyebrow">Espacio privado · {code}</div>
@@ -90,7 +90,7 @@ export default async function Espacio({ params, searchParams }: { params: Promis
 
       <nav className="tabs mt-32" aria-label="Secciones del espacio privado">
         {TABS.map(([k, label]) => (
-          <Link key={k} href={tabHref(k)} className="tab" aria-current={tab === k ? "page" : undefined}>
+          <Link prefetch={false} key={k} href={tabHref(k)} className="tab" aria-current={tab === k ? "page" : undefined}>
             {label}
             {k === "preguntas" && questions.length > 0 && ` (${questions.length})`}
           </Link>
@@ -169,7 +169,7 @@ export default async function Espacio({ params, searchParams }: { params: Promis
                 {["Todas", ...DOC_CATEGORIES].map((c) => {
                   const n = c === "Todas" ? docs.length : docs.filter((d) => d.category === c).length;
                   return (
-                    <Link key={c} href={`/oportunidades/${code}/espacio?tab=documentos${c === "Todas" ? "" : `&cat=${encodeURIComponent(c)}`}`} aria-current={cat === c ? "page" : undefined}>
+                    <Link prefetch={false} key={c} href={`/oportunidades/${code}/espacio?tab=documentos${c === "Todas" ? "" : `&cat=${encodeURIComponent(c)}`}`} aria-current={cat === c ? "page" : undefined}>
                       <span>{c}</span>
                       <span className="small num">{n}</span>
                     </Link>
