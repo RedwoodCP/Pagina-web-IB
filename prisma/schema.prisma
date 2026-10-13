@@ -1,0 +1,373 @@
+// Modelo de datos de la red privada de transacciones.
+// SQLite en desarrollo; para producción cambie provider a "postgresql" y DATABASE_URL.
+// Los estados se guardan como texto (SQLite no admite enums); los valores válidos
+// están tipados en src/lib/domain.ts.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  type      String // fondo, family_office, corporativo, banca_inversion, empresa, particular, otro
+  website   String?
+  country   String?
+  isDemo    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  users      User[]
+  listings   Listing[]
+  exclusions ListingExclusion[]
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String
+  passwordHash   String
+  title          String? // cargo
+  phone          String?
+  status         String    @default("activo") // activo | suspendido
+  isAdmin        Boolean   @default(false)
+  canBuy         Boolean   @default(true)
+  canSell        Boolean   @default(false)
+  isAdvisor      Boolean   @default(false)
+  onboardingDone Boolean   @default(false)
+  // Preferencias de búsqueda (JSON en texto)
+  prefSectors    String    @default("[]")
+  prefRegions    String    @default("[]")
+  ticketMin      Float?
+  ticketMax      Float?
+  isDemo         Boolean   @default(false)
+  failedLogins   Int       @default(0)
+  lockedUntil    DateTime?
+  lastLoginAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  sessions          Session[]
+  listings          Listing[]               @relation("ListingOwner")
+  collaborations    ListingCollaborator[]
+  favorites         Favorite[]
+  engagements       Engagement[]
+  questions         Question[]              @relation("QuestionAsker")
+  answers           Question[]              @relation("QuestionAnswerer")
+  notifications     Notification[]
+  auditLogs         AuditLog[]
+  invitationsSent   Invitation[]            @relation("InvitationSender")
+  docAccessRequests DocumentAccessRequest[]
+  passwordResets    PasswordReset[]
+}
+
+model Session {
+  id        String   @id // sha256 del token; el token en claro solo vive en la cookie
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PasswordReset {
+  id        String    @id // sha256 del token
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model MembershipRequest {
+  id           String    @id @default(cuid())
+  reference    String    @unique // folio para consultar el estado, p. ej. SOL-7KQ2M
+  name         String
+  email        String
+  phone        String?
+  organization String
+  orgType      String
+  interest     String // comprar | vender | ambos | asesorar
+  message      String?
+  status       String    @default("pendiente") // pendiente | aprobada | rechazada
+  reviewNote   String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  isDemo       Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+
+  invitation Invitation?
+}
+
+model Invitation {
+  id          String    @id @default(cuid())
+  email       String
+  tokenHash   String    @unique
+  profile     String // comprador | vendedor | ambos | asesor
+  message     String?
+  // enviada | aceptada | revocada. «vencida» se calcula con expiresAt.
+  status      String    @default("enviada")
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  revokedAt   DateTime?
+  isDemo      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  invitedById String?
+  invitedBy   User?     @relation("InvitationSender", fields: [invitedById], references: [id])
+  requestId   String?   @unique
+  request     MembershipRequest? @relation(fields: [requestId], references: [id])
+
+  @@index([email])
+}
+
+model Listing {
+  id     String @id @default(cuid())
+  code   String @unique // identificador anónimo RW-####
+  status String @default("borrador") // borrador | revision | publicada | cambios | retirada
+  step   Int    @default(1) // último paso del asistente
+
+  // --- Datos confidenciales: solo dueño, colaboradores, admin y compradores autorizados
+  legalName     String?
+  city          String?
+  foundedYear   Int?
+  ownership     String?
+  advisorName   String?
+  confidentialNotes String?
+  financialHistory String @default("[]") // [{year, sales, ebitda}]
+
+  // --- Datos anónimos visibles para miembros
+  relationship   String  @default("propietario") // propietario | directivo | asesor
+  sector         String?
+  region         String?
+  country        String  @default("México")
+  title          String?
+  summary        String?
+  highlights     String  @default("[]")
+  dealType       String?
+  yearsOperating Int?
+  employees      String?
+  currency       String  @default("USD") // USD | MXN
+  fiscalYear     Int?
+  sales          Float? // millones
+  ebitda         Float? // millones (monetario; puede ser negativo)
+  priceMin       Float?
+  priceMax       Float?
+  negotiable     Boolean @default(false)
+  // Visibilidad por métrica: miembros | autorizados
+  visSales  String @default("miembros")
+  visEbitda String @default("miembros")
+  visMargin String @default("miembros")
+  visPrice  String @default("autorizados")
+
+  reviewNote  String?
+  submittedAt DateTime?
+  publishedAt DateTime?
+  isDemo      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  ownerId        String
+  owner          User          @relation("ListingOwner", fields: [ownerId], references: [id])
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  collaborators ListingCollaborator[]
+  documents     ListingDocument[]
+  favorites     Favorite[]
+  engagements   Engagement[]
+  questions     Question[]
+  exclusions    ListingExclusion[]
+
+  @@index([status])
+}
+
+model ListingCollaborator {
+  id        String   @id @default(cuid())
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   @default("gestor") // gestor | lector
+  createdAt DateTime @default(now())
+
+  @@unique([listingId, userId])
+}
+
+// Organizaciones que el vendedor excluye (p. ej. competidores): no ven la oportunidad.
+model ListingExclusion {
+  id             String       @id @default(cuid())
+  listingId      String
+  listing        Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, organizationId])
+}
+
+model ListingDocument {
+  id           String   @id @default(cuid())
+  listingId    String
+  listing      Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  kind         String // teaser | documento
+  originalName String // puede revelar identidad: nunca se envía antes de autorización
+  storageKey   String   @unique // nombre aleatorio en disco, fuera de /public
+  mime         String
+  size         Int
+  category     String   @default("Financiera") // Financiera | Comercial | Legal | Operativa | Personal
+  permission   String   @default("lectura") // descarga | lectura | restringido
+  uploadedById String
+  createdAt    DateTime @default(now())
+
+  accessRequests DocumentAccessRequest[]
+}
+
+model DocumentAccessRequest {
+  id         String          @id @default(cuid())
+  documentId String
+  document   ListingDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status     String          @default("solicitado") // solicitado | aprobado | rechazado
+  decidedAt  DateTime?
+  createdAt  DateTime        @default(now())
+
+  @@unique([documentId, userId])
+}
+
+model Favorite {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, listingId])
+}
+
+// Relación comprador × oportunidad. NDA y acceso son máquinas de estado independientes.
+model Engagement {
+  id             String    @id @default(cuid())
+  listingId      String
+  listing        Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationName String?
+  representation String    @default("organizacion") // propia | organizacion | tercero
+  clientName     String? // cuando un asesor representa a un comprador
+  message        String?
+  ndaStatus      String    @default("pendiente_firma") // pendiente_firma | firmado
+  accessStatus   String    @default("none") // none | pendiente | autorizado | rechazado | revocado
+  accessNote     String?
+  accessDecidedAt DateTime?
+  accessDecidedById String?
+  interestLevel  String    @default("evaluando") // evaluando | interesado | muy_interesado | descartado
+  isDemo         Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  nda      NdaSignature?
+  meetings MeetingRequest[]
+
+  @@unique([listingId, userId])
+}
+
+model NdaSignature {
+  id             String    @id @default(cuid())
+  engagementId   String    @unique
+  engagement     Engagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  ndaVersion     String
+  textHash       String // sha256 del texto presentado
+  signerName     String
+  signerTitle    String
+  signerOrg      String
+  signerEmail    String
+  representation String
+  // registro_interno: aceptación registrada en la plataforma (sin proveedor de firma).
+  // proveedor: firma gestionada por un proveedor externo (DocuSign, Dropbox Sign, …).
+  method         String
+  provider       String?
+  providerRef    String?
+  status         String    @default("pendiente") // pendiente | completado | rechazado
+  ip             String?
+  userAgent      String?
+  completedAt    DateTime?
+  validUntil     DateTime?
+  createdAt      DateTime  @default(now())
+}
+
+model Question {
+  id           String    @id @default(cuid())
+  listingId    String
+  listing      Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  askerId      String
+  asker        User      @relation("QuestionAsker", fields: [askerId], references: [id], onDelete: Cascade)
+  body         String
+  answer       String?
+  answeredById String?
+  answeredBy   User?     @relation("QuestionAnswerer", fields: [answeredById], references: [id])
+  answeredAt   DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+model MeetingRequest {
+  id           String     @id @default(cuid())
+  engagementId String
+  engagement   Engagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  slots        String // JSON: fechas propuestas por el comprador (ISO)
+  format       String     @default("video") // video | presencial | telefono
+  message      String?
+  status       String     @default("solicitada") // solicitada | confirmada | rechazada | cancelada
+  confirmedSlot String?
+  response     String?
+  createdAt    DateTime   @default(now())
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text      String
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id])
+  action     String
+  entityType String
+  entityId   String?
+  listingId  String?
+  meta       String   @default("{}")
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([listingId])
+}
+
+// Correos transaccionales. Sin proveedor configurado quedan aquí (modo desarrollo).
+model EmailOutbox {
+  id        String    @id @default(cuid())
+  to        String
+  subject   String
+  body      String
+  status    String    @default("pendiente") // pendiente | enviado | sin_proveedor | error
+  error     String?
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+}
