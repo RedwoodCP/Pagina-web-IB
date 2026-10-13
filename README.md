@@ -13,12 +13,11 @@ Requisitos: Node.js 20 o superior.
 
 ```bash
 npm install
-cp .env.example .env          # y genere APP_SECRET: openssl rand -hex 32
-npm run db:reset              # crea prisma/dev.db y carga datos de demostración
+npm run setup                 # crea .env, la base local y los datos de demostración
 npm run dev                   # http://localhost:3000
 ```
 
-`db:reset` borra la base local `prisma/dev.db` y la carpeta `storage/`. Úselo solo en desarrollo.
+`npm run setup` (o `db:reset`) borra la base local `prisma/dev.db` y la carpeta `storage/` y las vuelve a crear. Úselo solo en desarrollo.
 
 Cuentas de demostración (contraseña `Demo2026segura`):
 

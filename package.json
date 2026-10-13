@@ -9,10 +9,11 @@
     "typecheck": "tsc --noEmit",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:reset": "rm -rf prisma/dev.db storage && prisma db push && tsx prisma/seed.ts",
+    "db:reset": "tsx scripts/setup.ts",
     "demo:purge": "tsx scripts/purge-demo.ts",
     "test:e2e": "playwright test",
-    "admin:create": "tsx scripts/create-admin.ts"
+    "admin:create": "tsx scripts/create-admin.ts",
+    "setup": "tsx scripts/setup.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
