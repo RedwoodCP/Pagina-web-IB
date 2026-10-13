@@ -10,3 +10,4 @@ prisma/*.db-journal
 storage/
 test-results/
 playwright-report/
+storage-test/

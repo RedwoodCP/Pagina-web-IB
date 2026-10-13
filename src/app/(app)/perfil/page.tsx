@@ -32,7 +32,7 @@ export default async function Perfil() {
         {!u.isAdmin && sec(4, "Intereses", [["Sectores", parseJson<string[]>(u.prefSectors, []).join(", ")], ["Regiones", parseJson<string[]>(u.prefRegions, []).join(", ")], ["Ticket (US$ M)", u.ticketMin != null || u.ticketMax != null ? `${u.ticketMin ?? "—"} – ${u.ticketMax ?? "—"}` : ""]])}
         <section className="card card-pad">
           <h2 className="h2 mb-16" style={{ fontSize: 18 }}>Cambiar contraseña</h2>
-          <ActionForm action={changePasswordAction} className="stack gap-16">
+          <ActionForm action={changePasswordAction} className="stack gap-16" resetOnSuccess>
             <Field name="current" label="Contraseña actual" type="password" autoComplete="current-password" />
             <div className="grid-2">
               <Field name="password" label="Contraseña nueva" type="password" autoComplete="new-password" hint="Al menos 10 caracteres, con letras y números." />

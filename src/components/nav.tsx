@@ -20,7 +20,7 @@ export function SideNav({ sections }: { sections: NavSection[] }) {
           <div className="nav-title">{s.title}</div>
           {s.items.map((it) => (
             <Link key={it.href} href={it.href} className="nav-item" aria-current={isActive(path, it) ? "page" : undefined}>
-              <span className="ms">{it.icon}</span>
+              <span aria-hidden="true" className="ms">{it.icon}</span>
               <span className="grow">{it.label}</span>
               {!!it.count && <span className="count-pill">{it.count}</span>}
             </Link>
@@ -37,7 +37,7 @@ export function BottomNav({ items }: { items: NavItem[] }) {
     <nav className="bottom-nav" aria-label="Navegación móvil">
       {items.map((it) => (
         <Link key={it.href} href={it.href} aria-current={isActive(path, it) ? "page" : undefined}>
-          <span className="ms">{it.icon}</span>
+          <span aria-hidden="true" className="ms">{it.icon}</span>
           {it.label}
         </Link>
       ))}

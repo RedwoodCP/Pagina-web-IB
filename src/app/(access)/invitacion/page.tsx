@@ -28,7 +28,7 @@ export default async function Invitacion({ searchParams }: { searchParams: Promi
           <div className="field">
             <label htmlFor="l">Enlace de invitación</label>
             <input id="l" name="link" className="input" placeholder="https://…/invitacion/…" aria-invalid={e ? true : undefined} />
-            {e && <div className="field-error"><span className="ms">error</span>Pegue el enlace completo que recibió.</div>}
+            {e && <div className="field-error"><span aria-hidden="true" className="ms">error</span>Pegue el enlace completo que recibió.</div>}
           </div>
           <div><button className="btn btn-lg">Continuar</button></div>
         </form>

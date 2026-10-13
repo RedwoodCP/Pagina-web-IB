@@ -31,7 +31,7 @@ export function Steps({ steps }: { steps: Step[] }) {
     <ol className="steps-v">
       {steps.map((s) => (
         <li key={s.label} className={s.state} aria-current={s.state === "current" ? "step" : undefined}>
-          <span className="vdot"><span className="ms">{ic[s.state]}</span></span>
+          <span className="vdot"><span aria-hidden="true" className="ms">{ic[s.state]}</span></span>
           <div>
             <div className="vlabel">{s.label}</div>
             <div className="vsub">{s.sub}</div>

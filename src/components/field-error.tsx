@@ -8,7 +8,7 @@ export function FieldErrorFor({ name }: { name: string }) {
   if (!m) return null;
   return (
     <div className="field-error mt-8" role="alert">
-      <span className="ms">error</span>
+      <span aria-hidden="true" className="ms">error</span>
       {m}
     </div>
   );

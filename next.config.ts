@@ -9,6 +9,7 @@ const securityHeaders = [
 
 const config: NextConfig = {
   poweredByHeader: false,
+  devIndicators: false,
   serverExternalPackages: ["bcryptjs"],
   experimental: { serverActions: { bodySizeLimit: "26mb" } },
   async headers() {

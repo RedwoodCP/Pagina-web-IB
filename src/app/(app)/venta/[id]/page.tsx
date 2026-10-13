@@ -293,7 +293,7 @@ export default async function Gestion({ params, searchParams }: { params: Promis
             </div>
             {ctx.isOwner && (
               <div className="card" style={{ padding: 20 }}>
-                <ActionForm action={addCollaboratorAction.bind(null, id)} className="stack gap-12">
+                <ActionForm action={addCollaboratorAction.bind(null, id)} className="stack gap-12" resetOnSuccess>
                   <div className="grid-2">
                     <Field name="email" label="Correo del miembro" type="email" required />
                     <Select name="role" label="Rol" options={[["gestor", "Gestor"], ["lector", "Lector"]]} defaultValue="gestor" />
@@ -317,7 +317,7 @@ export default async function Gestion({ params, searchParams }: { params: Promis
             </div>
             {can && (
               <div className="card" style={{ padding: 20 }}>
-                <ActionForm action={addExclusionAction.bind(null, id)} className="stack gap-12">
+                <ActionForm action={addExclusionAction.bind(null, id)} className="stack gap-12" resetOnSuccess>
                   <Select name="organizationId" label="Organización" placeholder="Seleccione…" options={orgs.map((o) => [o.id, o.name] as [string, string])} />
                   <div><Submit className="btn btn-secondary btn-sm" icon="block" pendingText="Guardando…">Excluir</Submit></div>
                 </ActionForm>

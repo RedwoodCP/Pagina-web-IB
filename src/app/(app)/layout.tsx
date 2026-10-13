@@ -111,7 +111,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
           <form action={logoutAction}>
             <button className="icon-btn" aria-label="Cerrar sesión" title="Cerrar sesión">
-              <span className="ms">logout</span>
+              <span aria-hidden="true" className="ms">logout</span>
             </button>
           </form>
         </div>
@@ -132,12 +132,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
           <div className="grow mobile-only" />
           <Link href="/notificaciones" className="icon-btn" aria-label={unread ? `Notificaciones, ${unread} sin leer` : "Notificaciones"}>
-            <span className="ms" style={{ fontSize: 22 }}>notifications</span>
+            <span aria-hidden="true" className="ms" style={{ fontSize: 22 }}>notifications</span>
             {unread > 0 && <span className="dot" />}
           </Link>
           <form action={logoutAction} className="mobile-only">
             <button className="icon-btn" aria-label="Cerrar sesión">
-              <span className="ms">logout</span>
+              <span aria-hidden="true" className="ms">logout</span>
             </button>
           </form>
         </header>

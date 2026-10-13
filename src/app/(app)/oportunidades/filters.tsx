@@ -61,7 +61,7 @@ export function CatalogControls({ groups, children, count }: { groups: Group[]; 
       <div className="hstack gap-12" style={{ flexWrap: "wrap" }}>
         <label style={{ flex: "1 1 320px", position: "relative", display: "block" }}>
           <span className="sr-only">Buscar oportunidades</span>
-          <span className="ms" style={{ position: "absolute", left: 14, top: 12, fontSize: 22, color: "#585858" }}>search</span>
+          <span aria-hidden="true" className="ms" style={{ position: "absolute", left: 14, top: 12, fontSize: 22, color: "#585858" }}>search</span>
           <input
             className="input"
             style={{ height: 48, paddingLeft: 46, fontSize: 15 }}
@@ -100,8 +100,8 @@ export function CatalogControls({ groups, children, count }: { groups: Group[]; 
         onClick={() => setMobileOpen(!mobileOpen)}
         style={{ justifyContent: "space-between" }}
       >
-        <span className="hstack gap-8"><span className="ms">tune</span>Filtros{nActive ? ` · ${nActive}` : ""}</span>
-        <span className="ms">{mobileOpen ? "expand_less" : "expand_more"}</span>
+        <span className="hstack gap-8"><span aria-hidden="true" className="ms">tune</span>Filtros{nActive ? ` · ${nActive}` : ""}</span>
+        <span aria-hidden="true" className="ms">{mobileOpen ? "expand_less" : "expand_more"}</span>
       </button>
 
       <div ref={wrap} className={"filters" + (mobileOpen ? " open" : "")} aria-label="Filtros" role="group">
@@ -116,9 +116,9 @@ export function CatalogControls({ groups, children, count }: { groups: Group[]; 
                 aria-expanded={isOpen}
                 onClick={() => setOpen(isOpen ? null : g.key)}
               >
-                <span className="ms" style={{ fontSize: 18 }}>{g.icon}</span>
+                <span aria-hidden="true" className="ms" style={{ fontSize: 18 }}>{g.icon}</span>
                 <span className="grow ellipsis">{g.title}{sel.length ? ` · ${sel.length}` : ""}</span>
-                <span className="ms" style={{ fontSize: 18 }}>{isOpen ? "expand_less" : "expand_more"}</span>
+                <span aria-hidden="true" className="ms" style={{ fontSize: 18 }}>{isOpen ? "expand_less" : "expand_more"}</span>
               </button>
               {isOpen && (
                 <div className={"dd-panel" + (g.key === "precio" || g.key === "ventas" ? " right" : "")} role="group" aria-label={g.title}>
@@ -127,7 +127,7 @@ export function CatalogControls({ groups, children, count }: { groups: Group[]; 
                     const on = sel.includes(o.value);
                     return (
                       <button key={o.value} type="button" className="dd-item" role="menuitemcheckbox" aria-checked={on} onClick={() => toggle(g.key, o.value, g.single)}>
-                        <span className="ms">{on ? "check_box" : "check_box_outline_blank"}</span>
+                        <span aria-hidden="true" className="ms">{on ? "check_box" : "check_box_outline_blank"}</span>
                         {o.label}
                       </button>
                     );
@@ -145,7 +145,7 @@ export function CatalogControls({ groups, children, count }: { groups: Group[]; 
           {active.map((a) => (
             <button key={a.label} type="button" onClick={a.rm} className="active-filter" aria-label={`Quitar filtro ${a.label}`}>
               {a.label}
-              <span className="ms" style={{ fontSize: 16 }}>close</span>
+              <span aria-hidden="true" className="ms" style={{ fontSize: 16 }}>close</span>
             </button>
           ))}
           <button type="button" className="btn-link small" style={{ background: "none", border: 0, cursor: "pointer", padding: "0 6px" }} onClick={() => { setQ(""); start(() => router.replace(path, { scroll: false })); }}>

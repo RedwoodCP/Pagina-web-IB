@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
 import type { ActionState } from "@/lib/action";
 
 type Props = {
@@ -17,7 +17,7 @@ const LABELS = ["Revisar acuerdo", "Datos del firmante", "Firma", "Estado"];
 const STEP_OF: Record<string, number> = { read: 1, signerName: 2, signerTitle: 2, signerOrg: 2, signerEmail: 2, representation: 2, clientName: 2, typedName: 3, consent: 3 };
 
 function Err({ m }: { m?: string }) {
-  return m ? <div className="field-error"><span className="ms">error</span>{m}</div> : null;
+  return m ? <div className="field-error"><span aria-hidden="true" className="ms">error</span>{m}</div> : null;
 }
 
 export function NdaFlow({ code, sections, version, defaults, signature, action }: Props) {
@@ -66,14 +66,14 @@ export function NdaFlow({ code, sections, version, defaults, signature, action }
           const cls = k < step ? "done" : k === step ? "cur" : "";
           return (
             <li key={l} className={cls} aria-current={k === step ? "step" : undefined}>
-              <span className="step-dot">{k < step ? <span className="ms">check</span> : k}</span>
+              <span className="step-dot">{k < step ? <span aria-hidden="true" className="ms">check</span> : k}</span>
               <span>{l}</span>
             </li>
           );
         })}
       </ol>
-      <form action={run} className="card card-pad" noValidate>
-        {state.error && <div className="form-banner mb-16" role="alert"><span className="ms">error</span><div>{state.error}</div></div>}
+      <form onSubmit={(e) => { e.preventDefault(); if (pending) return; const fd = new FormData(e.currentTarget); startTransition(() => run(fd)); }} className="card card-pad" noValidate>
+        {state.error && <div className="form-banner mb-16" role="alert"><span aria-hidden="true" className="ms">error</span><div>{state.error}</div></div>}
         {/* Todos los campos permanecen en el formulario; el servidor valida de nuevo. */}
         <div hidden={step !== 1}>
           <div className="hstack between gap-12 mb-16" style={{ flexWrap: "wrap" }}>
@@ -129,7 +129,7 @@ export function NdaFlow({ code, sections, version, defaults, signature, action }
             <>
               <h2 className="h2 mb-8">Aceptación del acuerdo</h2>
               <div className="form-banner warn mb-24" role="note">
-                <span className="ms">info</span>
+                <span aria-hidden="true" className="ms">info</span>
                 <div>
                   <strong>Sin proveedor de firma electrónica configurado.</strong> Al continuar, la plataforma registrará su aceptación con
                   nombre, cargo, organización, fecha y hora, dirección IP, navegador y la versión exacta del texto. Este registro <strong>no es

@@ -279,8 +279,10 @@ export async function answerQuestionAction(listingId: string, questionId: string
   await db.question.update({ where: { id: q.id }, data: { answer, answeredById: c.user.id, answeredAt: new Date() } });
   await audit(c.user.id, "question.answered", "question", q.id, { listingId });
   await notify(q.askerId, `Respondieron su pregunta en ${c.l.code}.`, `/oportunidades/${c.l.code}/espacio?tab=preguntas`);
+  // El formulario desaparece al responder: el aviso viaja como «flash».
+  await setFlash("Respuesta enviada.");
   revalidatePath(`/venta/${listingId}`);
-  return { ok: true, message: "Respuesta enviada." };
+  return { ok: true };
 }
 
 export async function decideMeetingAction(listingId: string, meetingId: string, _: ActionState, fd: FormData): Promise<ActionState> {
@@ -296,8 +298,9 @@ export async function decideMeetingAction(listingId: string, meetingId: string, 
   await db.meetingRequest.update({ where: { id: m.id }, data: { status: decision, confirmedSlot: decision === "confirmada" ? slot : null, response: response || null } });
   await audit(c.user.id, "meeting.decided", "meeting", m.id, { listingId, meta: { decision } });
   await notify(m.engagement.userId, decision === "confirmada" ? `Reunión confirmada para ${c.l.code}.` : `El vendedor de ${c.l.code} propone otra fecha para la reunión.`, `/oportunidades/${c.l.code}/espacio?tab=reunion`);
+  await setFlash(decision === "confirmada" ? "Reunión confirmada." : "Respuesta enviada.");
   revalidatePath(`/venta/${listingId}`);
-  return { ok: true, message: decision === "confirmada" ? "Reunión confirmada." : "Respuesta enviada." };
+  return { ok: true };
 }
 
 export async function addCollaboratorAction(listingId: string, _: ActionState, fd: FormData): Promise<ActionState> {

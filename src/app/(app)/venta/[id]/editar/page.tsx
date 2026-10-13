@@ -83,7 +83,7 @@ export default async function Editar({ params, searchParams }: { params: Promise
         {LABELS.map((lab, i) => {
           const k = i + 1;
           const cls = k < step ? "done" : k === step ? "cur" : "";
-          const inner = (<><span className="step-dot">{k < step ? <span className="ms">check</span> : k}</span><span>{lab}</span></>);
+          const inner = (<><span className="step-dot">{k < step ? <span aria-hidden="true" className="ms">check</span> : k}</span><span>{lab}</span></>);
           return (
             <li key={lab} className={cls} aria-current={k === step ? "step" : undefined}>
               {k <= l.step && k !== step ? <Link href={`/venta/${id}/editar?paso=${k}`}>{inner}</Link> : inner}
@@ -240,7 +240,7 @@ export default async function Editar({ params, searchParams }: { params: Promise
             <ul className="card rows" style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {checks.map(([ok, label, hint]) => (
                 <li key={label} className="row" style={{ padding: "12px 16px" }}>
-                  <span className="ms" style={{ color: ok ? "var(--ok-fg)" : "var(--warn-fg)" }}>{ok ? "check_circle" : "warning"}</span>
+                  <span aria-hidden="true" className="ms" style={{ color: ok ? "var(--ok-fg)" : "var(--warn-fg)" }}>{ok ? "check_circle" : "warning"}</span>
                   <span className="grow">{label}</span>
                   {!ok && <span className="small c-lead">{hint}</span>}
                 </li>

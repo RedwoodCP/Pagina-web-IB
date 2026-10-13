@@ -20,7 +20,7 @@ export default function Configuracion() {
     <div className="card rows">
       {rows.map(([t, d, ok, how]) => (
         <div key={t} className="row" style={{ alignItems: "flex-start" }}>
-          <span className="ms" style={{ color: ok ? "var(--ok-fg)" : "var(--warn-fg)" }}>{ok ? "check_circle" : "warning"}</span>
+          <span aria-hidden="true" className="ms" style={{ color: ok ? "var(--ok-fg)" : "var(--warn-fg)" }}>{ok ? "check_circle" : "warning"}</span>
           <div className="row-main">
             <div className="fw6">{t}</div>
             <div className="small mt-4">{d}</div>

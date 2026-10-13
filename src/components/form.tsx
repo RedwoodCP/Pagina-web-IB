@@ -1,37 +1,60 @@
 "use client";
 
-import { createContext, useActionState, useContext, useEffect, useId, type ReactNode } from "react";
+import { createContext, startTransition, useActionState, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import type { ActionState } from "@/lib/action";
 import { toast } from "./toast";
 
 type Action = (prev: ActionState, fd: FormData) => Promise<ActionState>;
-const Ctx = createContext<ActionState>({});
+type Ctx = ActionState & { $pending?: boolean; $submitter?: string | null; $inForm?: boolean };
+const Ctx = createContext<Ctx>({});
 
-/** Formulario conectado a una Server Action con errores por campo, banner y aviso de éxito. */
+/**
+ * Formulario conectado a una Server Action con errores por campo, banner y aviso de éxito.
+ * Se envía con onSubmit (no con la prop action) para que React no reinicie los campos tras
+ * un error de validación: el usuario conserva lo que escribió. resetOnSuccess limpia al terminar bien.
+ */
 export function ActionForm({
   action,
   children,
   className,
   id,
   noBanner,
+  resetOnSuccess,
 }: {
   action: Action;
   children: ReactNode;
   className?: string;
   id?: string;
   noBanner?: boolean;
+  resetOnSuccess?: boolean;
 }) {
-  const [state, run] = useActionState(action, {});
+  const [state, dispatch, pending] = useActionState(action, {});
+  const [submitter, setSubmitter] = useState<string | null>(null);
+  const ref = useRef<HTMLFormElement>(null);
   useEffect(() => {
     if (state.message) toast(state.message);
-  }, [state]);
+    if (state.ok && resetOnSuccess) ref.current?.reset();
+  }, [state, resetOnSuccess]);
   return (
-    <Ctx.Provider value={state}>
-      <form action={run} className={className} id={id} noValidate>
+    <Ctx.Provider value={{ ...state, $pending: pending, $submitter: submitter, $inForm: true }}>
+      <form
+        ref={ref}
+        className={className}
+        id={id}
+        noValidate
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (pending) return;
+          const sub = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+          const fd = new FormData(e.currentTarget, sub ?? undefined);
+          setSubmitter(sub?.name ? `${sub.name}=${sub.value}` : null);
+          startTransition(() => dispatch(fd));
+        }}
+      >
         {state.error && !noBanner && (
           <div className="form-banner mb-16" role="alert">
-            <span className="ms">error</span>
+            <span aria-hidden="true" className="ms">error</span>
             <div>{state.error}</div>
           </div>
         )}
@@ -49,7 +72,7 @@ function FieldError({ id, msg }: { id: string; msg?: string }) {
   if (!msg) return null;
   return (
     <div className="field-error" id={id}>
-      <span className="ms">error</span>
+      <span aria-hidden="true" className="ms">error</span>
       {msg}
     </div>
   );
@@ -84,7 +107,7 @@ export function Field({
     <div className={"field " + (className ?? "")}>
       {label && (
         <label htmlFor={id}>
-          {icon && <span className="ms" style={{ fontSize: 16 }}>{icon}</span>}
+          {icon && <span aria-hidden="true" className="ms" style={{ fontSize: 16 }}>{icon}</span>}
           {label}
           {required && " *"}
           {optional && <span className="opt">(opcional)</span>}
@@ -160,7 +183,7 @@ export function Select({
     <div className={"field " + (className ?? "")}>
       {label && (
         <label htmlFor={id}>
-          {icon && <span className="ms" style={{ fontSize: 16 }}>{icon}</span>}
+          {icon && <span aria-hidden="true" className="ms" style={{ fontSize: 16 }}>{icon}</span>}
           {label}
           {required && " *"}
           {optional && <span className="opt">(opcional)</span>}
@@ -272,11 +295,13 @@ export function Submit({
   value?: string;
   formNoValidate?: boolean;
 }) {
-  const { pending, data } = useFormStatus();
-  const mine = pending && (!name || data?.get(name) === value);
+  const ctx = useContext(Ctx);
+  const st = useFormStatus();
+  const pending = ctx.$inForm ? !!ctx.$pending : st.pending;
+  const mine = pending && (!name || (ctx.$inForm ? ctx.$submitter === `${name}=${value}` : st.data?.get(name) === value));
   return (
     <button type="submit" className={className} disabled={pending} aria-busy={mine || undefined} name={name} value={value} formNoValidate={formNoValidate}>
-      {mine ? <span className="spinner" aria-hidden="true" /> : icon ? <span className="ms">{icon}</span> : null}
+      {mine ? <span className="spinner" aria-hidden="true" /> : icon ? <span aria-hidden="true" className="ms">{icon}</span> : null}
       {mine && pendingText ? pendingText : children}
     </button>
   );
@@ -287,7 +312,7 @@ export function FormError() {
   if (!s.error) return null;
   return (
     <div className="form-banner" role="alert">
-      <span className="ms">error</span>
+      <span aria-hidden="true" className="ms">error</span>
       <div>{s.error}</div>
     </div>
   );

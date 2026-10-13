@@ -248,7 +248,7 @@ export default async function Espacio({ params, searchParams }: { params: Promis
             <aside className="col-side">
               <div className="card" style={{ padding: 24 }}>
                 <h2 className="h2 mb-16" style={{ fontSize: 18 }}>Nueva pregunta</h2>
-                <ActionForm action={askQuestionAction.bind(null, code)} className="stack gap-16">
+                <ActionForm action={askQuestionAction.bind(null, code)} className="stack gap-16" resetOnSuccess>
                   <TextArea name="body" label="Pregunta" required rows={5} maxLength={2000} placeholder="Escriba una pregunta concreta sobre la operación." />
                   <Submit pendingText="Enviando…">Enviar pregunta</Submit>
                 </ActionForm>
@@ -290,7 +290,7 @@ export default async function Espacio({ params, searchParams }: { params: Promis
             <aside className="col-side">
               <div className="card" style={{ padding: 24 }}>
                 <h2 className="h2 mb-16" style={{ fontSize: 18 }}>Solicitar reunión</h2>
-                <ActionForm action={requestMeetingAction.bind(null, code)} className="stack gap-16">
+                <ActionForm action={requestMeetingAction.bind(null, code)} className="stack gap-16" resetOnSuccess>
                   <Field name="slot1" label="Horario propuesto 1" type="datetime-local" required />
                   <Field name="slot2" label="Horario propuesto 2" type="datetime-local" optional />
                   <Field name="slot3" label="Horario propuesto 3" type="datetime-local" optional />

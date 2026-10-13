@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { startTransition, useActionState, useRef, useState } from "react";
 import type { ActionState } from "@/lib/action";
 import { toast } from "./toast";
 import { useEffect } from "react";
@@ -29,11 +29,12 @@ export function UploadForm({
     if (state.message) {
       toast(state.message);
       setName(null);
+      ref.current?.reset();
     }
   }, [state]);
   const err = clientErr ?? state.fields?.file ?? state.error;
   return (
-    <form ref={ref} action={run} className="stack gap-12">
+    <form ref={ref} onSubmit={(e) => { e.preventDefault(); if (pending) return; const fd = new FormData(e.currentTarget); startTransition(() => run(fd)); }} className="stack gap-12">
       <label className={"dropzone" + (err ? " err" : "")}>
         <input
           type="file"
@@ -50,11 +51,11 @@ export function UploadForm({
             setName(f.name);
           }}
         />
-        <span className="ms" style={{ fontSize: 26 }}>upload_file</span>
+        <span aria-hidden="true" className="ms" style={{ fontSize: 26 }}>upload_file</span>
         <span className="fw6">{name ?? label}</span>
         <span className="small c-lead">{hint}</span>
       </label>
-      {err && <div className="field-error" role="alert"><span className="ms">error</span>{err}</div>}
+      {err && <div className="field-error" role="alert"><span aria-hidden="true" className="ms">error</span>{err}</div>}
       {!teaser && categories && (
         <div className="grid-2">
           <div className="field">
@@ -75,7 +76,7 @@ export function UploadForm({
       )}
       <div>
         <button className="btn btn-secondary" disabled={pending || !name || !!clientErr} aria-busy={pending || undefined}>
-          {pending ? <span className="spinner" /> : <span className="ms">upload</span>}
+          {pending ? <span className="spinner" /> : <span aria-hidden="true" className="ms">upload</span>}
           {pending ? "Cargando y verificando…" : teaser ? "Cargar teaser" : "Cargar documento"}
         </button>
       </div>

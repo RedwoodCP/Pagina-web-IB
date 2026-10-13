@@ -56,7 +56,7 @@ export function ActionButton({
 
   const label = (
     <>
-      {pending ? <span className="spinner" aria-hidden="true" /> : icon ? <span className="ms">{icon}</span> : null}
+      {pending ? <span className="spinner" aria-hidden="true" /> : icon ? <span aria-hidden="true" className="ms">{icon}</span> : null}
       {children}
     </>
   );
@@ -93,7 +93,7 @@ export function ActionButton({
             )}
             {err && (
               <div className="field-error" role="alert">
-                <span className="ms">error</span>
+                <span aria-hidden="true" className="ms">error</span>
                 {err}
               </div>
             )}

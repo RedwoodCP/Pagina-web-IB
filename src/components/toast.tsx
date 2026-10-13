@@ -34,14 +34,14 @@ export function ToastHost({ flash }: { flash?: string | null }) {
     <div aria-live="polite" role="status">
       {msg && (
         <div className="toast">
-          <span className="ms">info</span>
+          <span aria-hidden="true" className="ms">info</span>
           <span>{msg}</span>
           <button
             onClick={() => setMsg(null)}
             aria-label="Cerrar aviso"
             style={{ background: "none", border: 0, color: "#AEAEAE", cursor: "pointer", padding: 2, marginLeft: 4 }}
           >
-            <span className="ms" style={{ fontSize: 18 }}>close</span>
+            <span aria-hidden="true" className="ms" style={{ fontSize: 18 }}>close</span>
           </button>
         </div>
       )}
