@@ -21,10 +21,16 @@ export function storageMode(): "supabase" | "local" {
 const localDir = () => path.resolve(process.cwd(), process.env.STORAGE_DIR || "./storage");
 const validKey = (k: string) => /^[A-Za-z0-9_-]+$/.test(k);
 
+// Llaves nuevas (sb_secret_…) van solo en el encabezado apikey; las llaves JWT antiguas
+// (service_role) también en Authorization: Bearer.
+function authHeaders(key: string): Record<string, string> {
+  return key.startsWith("sb_") ? { apikey: key } : { apikey: key, Authorization: `Bearer ${key}` };
+}
+
 let bucketReady = false;
 async function ensureBucket(s: { url: string; key: string }) {
   if (bucketReady) return;
-  const h = { Authorization: `Bearer ${s.key}`, apikey: s.key };
+  const h = authHeaders(s.key);
   const r = await fetch(`${s.url}/storage/v1/bucket/${BUCKET}`, { headers: h });
   if (r.ok) {
     const b = (await r.json()) as { public?: boolean };
@@ -48,7 +54,7 @@ export async function putObject(buf: Buffer): Promise<string> {
     await ensureBucket(s);
     const r = await fetch(`${s.url}/storage/v1/object/${BUCKET}/${key}`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${s.key}`, apikey: s.key, "Content-Type": "application/octet-stream", "x-upsert": "false" },
+      headers: { ...authHeaders(s.key), "Content-Type": "application/octet-stream", "x-upsert": "false" },
       body: new Uint8Array(buf),
     });
     if (!r.ok) throw new Error(`Error al guardar el archivo: ${r.status} ${await r.text()}`);
@@ -64,7 +70,7 @@ export async function getObject(key: string): Promise<Buffer> {
   const s = supa();
   if (s) {
     const r = await fetch(`${s.url}/storage/v1/object/authenticated/${BUCKET}/${key}`, {
-      headers: { Authorization: `Bearer ${s.key}`, apikey: s.key },
+      headers: authHeaders(s.key),
       cache: "no-store",
     });
     if (!r.ok) throw new Error(`Archivo no disponible: ${r.status}`);
@@ -79,7 +85,7 @@ export async function removeObject(key: string) {
   if (s) {
     await fetch(`${s.url}/storage/v1/object/${BUCKET}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${s.key}`, apikey: s.key, "Content-Type": "application/json" },
+      headers: { ...authHeaders(s.key), "Content-Type": "application/json" },
       body: JSON.stringify({ prefixes: [key] }),
     }).catch(() => {});
     return;
