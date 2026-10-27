@@ -10,6 +10,7 @@ import { newInvitationToken } from "@/lib/invitations";
 import { invalid, okEmail, str, type ActionState } from "@/lib/action";
 import { INVITATION_DAYS, PROFILES, invitationState } from "@/lib/domain";
 import { fmtDate } from "@/lib/format";
+import { purgeDemoData } from "@/lib/demo";
 
 type R = { error?: string; message?: string };
 export type InviteResult = ActionState & { link?: string };
@@ -154,4 +155,15 @@ export async function setUserStatusAction(userId: string, status: "activo" | "su
   await audit(admin.id, status === "suspendido" ? "user.suspended" : "user.reactivated", "user", userId, { meta: { reason: str(fd, "reason", 500) } });
   revalidatePath("/admin/usuarios");
   return { message: status === "suspendido" ? `${u.name} fue suspendido y sus sesiones se cerraron.` : `${u.name} fue reactivado.` };
+}
+
+/** Elimina los datos de demostración. Exige una cuenta real de administración. */
+export async function purgeDemoAction(fd: FormData): Promise<R> {
+  const admin = await requireAdmin();
+  if (admin.isDemo) return { error: "Inicie sesión con una cuenta real de administración (no la de demostración) para eliminar los datos de demostración." };
+  if (str(fd, "reason", 20).toUpperCase() !== "ELIMINAR") return { error: "Escriba ELIMINAR para confirmar." };
+  const r = await purgeDemoData(db);
+  await audit(admin.id, "demo.purged", "sistema", null, { meta: r });
+  revalidatePath("/", "layout");
+  return { message: `Datos de demostración eliminados: ${r.users} usuarios, ${r.listings} oportunidades, ${r.files} archivos.` };
 }

@@ -29,20 +29,19 @@ export async function onboardingStepAction(step: number, _: ActionState, fd: For
     if (!ORG_TYPES[type]) f.orgType = "Seleccione el tipo de organización.";
     if (website && !/^https?:\/\/\S+\.\S+/.test(website)) f.website = "Use una dirección completa, por ejemplo https://ejemplo.com";
     if (Object.keys(f).length) return invalid(f, fd);
-    if (u.organizationId) await db.organization.update({ where: { id: u.organizationId }, data: { name, type, website: website || null, country: country || null } });
-    else {
-      const org = await db.organization.create({ data: { name, type, website: website || null, country: country || null } });
+    // Personas de la misma organización comparten un solo registro (p. ej. exclusiones por organización).
+    const current = u.organizationId ? await db.organization.findUnique({ where: { id: u.organizationId }, include: { _count: { select: { users: true } } } }) : null;
+    const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+    if (current && same(current.name, name)) {
+      // Solo quien está solo en la organización puede editar sus datos generales.
+      if (current._count.users <= 1) await db.organization.update({ where: { id: current.id }, data: { name, type, website: website || null, country: country || null } });
+    } else {
+      const existing = (await db.organization.findMany({ where: { isDemo: false } })).find((o) => same(o.name, name));
+      const org = existing ?? (await db.organization.create({ data: { name, type, website: website || null, country: country || null } }));
       await db.user.update({ where: { id: u.id }, data: { organizationId: org.id } });
     }
   }
-  if (step === 3) {
-    const roles = fd.getAll("roles").map(String);
-    if (!roles.length) return invalid({ roles: "Seleccione al menos una opción." }, fd);
-    await db.user.update({
-      where: { id: u.id },
-      data: { canBuy: roles.includes("comprar"), canSell: roles.includes("vender") || roles.includes("asesorar"), isAdvisor: roles.includes("asesorar") },
-    });
-  }
+  // Paso 3: los perfiles los asigna administración (Admin › Usuarios); aquí solo se confirman.
   if (step === 4) {
     const sectors = pick(fd, "sectors", SECTORS), regions = pick(fd, "regions", REGIONS);
     const min = num(fd, "ticketMin"), max = num(fd, "ticketMax");

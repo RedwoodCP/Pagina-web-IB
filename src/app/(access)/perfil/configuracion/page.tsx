@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Configuración del perfil" };
 const TITLES = [
   ["Sobre usted", "Datos de contacto del titular de la cuenta."],
   ["Su organización", "La organización a la que representa en la red."],
-  ["Cómo usará la plataforma", "Una sola cuenta permite comprar y vender. Puede cambiarlo después."],
+  ["Cómo usará la plataforma", "Una sola cuenta puede comprar y vender; administración asigna los perfiles."],
   ["Sus intereses", "Usamos estas preferencias para recomendarle oportunidades."],
 ];
 
@@ -20,7 +20,6 @@ export default async function Onboarding({ searchParams }: { searchParams: Promi
   const u = await requireUser();
   const step = Math.min(4, Math.max(1, Number((await searchParams).paso) || 1));
   const [t, d] = TITLES[step - 1]!;
-  const roles = [u.canBuy && "comprar", u.canSell && !u.isAdvisor && "vender", u.isAdvisor && "asesorar"].filter(Boolean) as string[];
   return (
     <>
       <LightHeader action={u.onboardingDone ? { href: "/perfil", label: "Volver a mi perfil" } : undefined} />
@@ -53,14 +52,16 @@ export default async function Onboarding({ searchParams }: { searchParams: Promi
               </div>
             )}
             {step === 3 && (
-              <ChipGroup
-                name="roles"
-                multiple
-                label="Quiero…"
-                defaultValue={roles}
-                options={[["comprar", "Comprar empresas"], ["vender", "Vender mi empresa"], ["asesorar", "Representar a clientes como asesor"]]}
-                hint="Compra y venta conviven en la misma cuenta; la navegación mostrará ambas secciones."
-              />
+              <div className="stack gap-12">
+                <div className="field-label">Perfiles asignados a su cuenta</div>
+                <div className="chips">
+                  {[u.canBuy && "Comprador", u.canSell && !u.isAdvisor && "Vendedor", u.isAdvisor && "Asesor representante", u.isAdmin && "Administración"]
+                    .filter(Boolean)
+                    .map((r) => <span key={r as string} className="chip chip-on" style={{ cursor: "default" }}>{r}</span>)}
+                  {!u.canBuy && !u.canSell && !u.isAdmin && <span className="c-lead">Sin perfiles asignados</span>}
+                </div>
+                <p className="field-hint">Los asigna el equipo de administración. Si necesita otro perfil (por ejemplo, comprar y vender con la misma cuenta), solicítelo al equipo.</p>
+              </div>
             )}
             {step === 4 && (
               <>

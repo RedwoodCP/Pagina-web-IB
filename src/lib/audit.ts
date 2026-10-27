@@ -69,4 +69,5 @@ export const ACTION_LABEL: Record<string, string> = {
   "meeting.requested": "Solicitó una reunión",
   "meeting.decided": "Respondió una solicitud de reunión",
   "interest.updated": "Actualizó su nivel de interés",
+  "demo.purged": "Eliminó los datos de demostración",
 };

@@ -59,7 +59,7 @@ test.describe("Vendedor y administración", () => {
     await page.getByLabel(/Nombre legal/).fill("Talleres Zentli, S.A. de C.V.");
     await page.getByRole("button", { name: "Guardar borrador" }).click();
     await expect(page.getByText("Borrador guardado.")).toBeVisible();
-    await page.getByLabel(/^Sector/).selectOption("Manufactura");
+    await page.getByLabel(/^Sector/).selectOption("Industrial y Manufactura");
     await page.getByLabel(/^Región/).selectOption("Bajío");
     await page.getByRole("button", { name: "Continuar" }).click();
     await expect(page).toHaveURL(/paso=2/);

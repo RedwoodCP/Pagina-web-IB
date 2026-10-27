@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { env } from "@/lib/env";
+import { hasDemoData } from "@/lib/demo";
 import { initials } from "@/lib/format";
 import { Brand } from "@/components/brand";
 import { BottomNav, Crumb, SideNav, type NavItem, type NavSection } from "@/components/nav";
@@ -13,6 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!user.onboardingDone && !user.isAdmin) redirect("/perfil/configuracion");
 
   const unread = await db.notification.count({ where: { userId: user.id, readAt: null } });
+  const demo = await hasDemoData(db);
   const sections: NavSection[] = [];
   let mobile: NavItem[];
   const seller = user.canSell || user.isAdvisor;
@@ -117,7 +118,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
       <div className="main">
-        {env.showDemo && (
+        {demo && (
           <div className="prototype-bar">
             <strong>DEMOSTRACIÓN</strong>
             <span>Las oportunidades y organizaciones marcadas «Demo» son ficticias.</span>

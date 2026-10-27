@@ -14,5 +14,6 @@ run("tsx scripts/prisma-postgres.ts");
 run("prisma generate --schema prisma/postgres.prisma");
 // db push aplica cambios no destructivos; si un cambio borraría datos, falla y no se publica.
 run("prisma db push --schema prisma/postgres.prisma --skip-generate");
+run("tsx scripts/migrate-sectors.ts");
 if (process.env.SEED_DEMO === "true") run("tsx scripts/seed-if-empty.ts");
 run("next build");

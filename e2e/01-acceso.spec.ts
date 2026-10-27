@@ -80,7 +80,7 @@ test.describe("Acceso privado", () => {
     await expect(page.getByText("Paso 3 de 4")).toBeVisible();
     await page.getByRole("button", { name: "Continuar" }).click();
     await expect(page.getByText("Paso 4 de 4")).toBeVisible();
-    await page.locator("label.chip", { hasText: "Manufactura" }).click();
+    await page.locator("label.chip", { hasText: "Industrial y Manufactura" }).click();
     await page.getByRole("button", { name: "Finalizar" }).click();
     await expect(page).toHaveURL(/\/panel/);
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Nuevo");

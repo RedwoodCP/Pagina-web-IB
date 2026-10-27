@@ -76,8 +76,8 @@ test.describe("Celular", () => {
     await expect(page.getByRole("button", { name: /^Industria/ })).toBeHidden();
     await page.getByRole("button", { name: /^Filtros/ }).click();
     await page.getByRole("button", { name: /^Industria/ }).click();
-    await page.getByRole("menuitemcheckbox", { name: "Logística" }).click();
-    await expect(page).toHaveURL(/sector=Log/);
+    await page.getByRole("menuitemcheckbox", { name: "Transporte y Logística" }).click();
+    await expect(page).toHaveURL(/sector=Transporte/);
     await expect(page.getByRole("button", { name: /^Filtros · 1/ })).toBeVisible();
     // sin desplazamiento horizontal
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

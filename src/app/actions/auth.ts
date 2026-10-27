@@ -142,6 +142,9 @@ export async function acceptInvitationAction(token: string, _: ActionState, fd: 
         canBuy: p === "comprador" || p === "ambos" || p === "asesor",
         canSell: p === "vendedor" || p === "ambos" || p === "asesor",
         isAdvisor: p === "asesor",
+        isAdmin: p === "admin",
+        // Administración no necesita perfil de compra/venta.
+        onboardingDone: p === "admin",
         organizationId: org?.id ?? null,
       },
     });
@@ -156,6 +159,10 @@ export async function acceptInvitationAction(token: string, _: ActionState, fd: 
   await audit(user.id, "invitation.accepted", "invitation", inv.id);
   if (inv.invitedById) await notify(inv.invitedById, `${name} aceptó la invitación (${inv.email}).`, "/admin/invitaciones");
   await createSession(user.id);
+  if (p === "admin") {
+    await setFlash("Invitación aceptada. Bienvenido al equipo de administración.");
+    redirect("/admin/solicitudes");
+  }
   await setFlash("Invitación aceptada. Complete su perfil.");
   redirect("/perfil/configuracion");
 }

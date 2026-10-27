@@ -1,19 +1,37 @@
 // Catálogos, estados y etiquetas compartidos por servidor y cliente.
 
 export const SECTORS = [
-  "Manufactura",
-  "Distribución",
-  "Tecnología",
-  "Salud",
-  "Consumo",
-  "Servicios industriales",
-  "Agroindustria",
+  "Automotriz",
+  "Consumo y Retail",
+  "Construcción",
+  "Inmobiliario",
+  "Servicios Empresariales",
   "Educación",
-  "Logística",
-  "Servicios financieros",
-  "Construcción e inmobiliario",
-  "Energía",
+  "Energía y Medio Ambiente",
+  "Servicios Financieros",
+  "Alimentos y Bebidas",
+  "Salud",
+  "Industrial y Manufactura",
+  "Infraestructura",
+  "Materiales, Químicos y Minería",
+  "Tecnología y Telecomunicaciones",
+  "Transporte y Logística",
+  "Agronegocios",
 ] as const;
+
+/** Equivalencias de la lista anterior de sectores (para migrar datos existentes). */
+export const LEGACY_SECTORS: Record<string, string> = {
+  Manufactura: "Industrial y Manufactura",
+  Distribución: "Transporte y Logística",
+  Tecnología: "Tecnología y Telecomunicaciones",
+  Consumo: "Consumo y Retail",
+  "Servicios industriales": "Industrial y Manufactura",
+  Agroindustria: "Agronegocios",
+  Logística: "Transporte y Logística",
+  "Servicios financieros": "Servicios Financieros",
+  "Construcción e inmobiliario": "Inmobiliario",
+  Energía: "Energía y Medio Ambiente",
+};
 
 export const REGIONS = ["Noreste", "Noroeste", "Bajío", "Centro", "Occidente", "Sureste"] as const;
 
@@ -36,18 +54,22 @@ export const DEAL_TYPE_DESC: Record<string, string> = {
 };
 
 export const SECTOR_ICON: Record<string, string> = {
-  Manufactura: "precision_manufacturing",
-  Distribución: "local_shipping",
-  Tecnología: "memory",
-  Salud: "medical_services",
-  Consumo: "shopping_basket",
-  "Servicios industriales": "engineering",
-  Agroindustria: "agriculture",
+  Automotriz: "directions_car",
+  "Consumo y Retail": "shopping_bag",
+  Construcción: "construction",
+  Inmobiliario: "apartment",
+  "Servicios Empresariales": "business_center",
   Educación: "school",
-  Logística: "conveyor_belt",
-  "Servicios financieros": "account_balance",
-  "Construcción e inmobiliario": "apartment",
-  Energía: "bolt",
+  "Energía y Medio Ambiente": "eco",
+  "Servicios Financieros": "account_balance",
+  "Alimentos y Bebidas": "restaurant",
+  Salud: "medical_services",
+  "Industrial y Manufactura": "precision_manufacturing",
+  Infraestructura: "foundation",
+  "Materiales, Químicos y Minería": "science",
+  "Tecnología y Telecomunicaciones": "memory",
+  "Transporte y Logística": "local_shipping",
+  Agronegocios: "agriculture",
 };
 
 export const EMPLOYEE_RANGES = ["1–10", "10–50", "50–100", "100–150", "150–250", "250–500", "500+"] as const;
@@ -74,12 +96,14 @@ export const PROFILES: Record<string, string> = {
   vendedor: "Vendedor",
   ambos: "Comprador y vendedor",
   asesor: "Asesor representante",
+  admin: "Administrador",
 };
 
 export const RELATIONSHIP: Record<string, string> = {
   propietario: "Propietario/a o accionista",
   directivo: "Directivo/a",
   asesor: "Asesor representante",
+  admin: "Administrador",
 };
 
 export const CURRENCIES = ["USD", "MXN"] as const;
