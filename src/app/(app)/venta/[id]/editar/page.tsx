@@ -45,12 +45,14 @@ export default async function Editar({ params, searchParams }: { params: Promise
   if (step > l.step) redirect(`/venta/${id}/editar?paso=${l.step}`);
 
   const teaser = l.documents.find((d) => d.kind === "teaser");
+  const nda = l.documents.find((d) => d.kind === "nda");
   const docs = l.documents.filter((d) => d.kind === "documento");
   const hist = parseJson<{ year: number; sales: number; ebitda: number }[]>(l.financialHistory, []).filter((h) => h.year !== l.fiscalYear);
   const cur = l.currency;
   const margin = l.sales && l.ebitda != null ? (l.ebitda / l.sales) * 100 : null;
   const pub = toPublicListing(l, false, !!teaser);
   const checks: [boolean, string, string][] = [
+    [!!nda, "NDA de la empresa cargado", "Obligatorio. Revise el paso 4."],
     [!!teaser, "Teaser cargado", "Recomendado: mejora la tasa de solicitudes."],
     [!!l.title && !identityLeaks(l.legalName, [l.title, l.summary]), "Título y descripción sin datos identificables", "Revise el paso 2."],
     [l.sales != null && l.ebitda != null, "Datos financieros completos", "Revise el paso 3."],
@@ -205,6 +207,23 @@ export default async function Editar({ params, searchParams }: { params: Promise
             ) : (
               <UploadForm maxMb={MAX_FILE_MB} action={uploadDocumentAction.bind(null, id, "teaser")} accept=".pdf" teaser label="Cargar teaser (PDF)" hint="Sin nombre, logotipo, fotografías identificables ni direcciones." />
             )}
+            <div className="label-caps mt-32 mb-8">NDA de la empresa · obligatorio</div>
+            <p className="small c-lead mb-12" style={{ maxWidth: 760 }}>
+              Es el acuerdo que revisarán y aceptarán los interesados antes de pedir acceso. Lo verán al solicitar información, antes de su autorización:
+              si menciona el nombre de la empresa, use un nombre clave (p. ej. «Proyecto {l.code}») para conservar el anonimato.
+            </p>
+            {nda ? (
+              <div className="card row mb-16">
+                <Icon name="contract" />
+                <div className="row-main"><div className="fw6">{nda.originalName}</div><div className="small c-lead">{fmtSize(nda.size)} · se mostrará como «NDA {l.code}.pdf», sin metadatos</div></div>
+                <a className="btn btn-secondary btn-sm" href={`/api/documentos/${nda.id}/abrir?modo=ver`} target="_blank" rel="noopener"><Icon name="visibility" />Ver</a>
+                <ActionButton action={deleteDocumentAction.bind(null, id, nda.id)} className="btn btn-icon" icon="delete" danger confirm={{ title: "Quitar NDA", body: "El archivo se eliminará." }} confirmLabel="Quitar">
+                  <span className="sr-only">Quitar NDA</span>
+                </ActionButton>
+              </div>
+            ) : (
+              <UploadForm maxMb={MAX_FILE_MB} action={uploadDocumentAction.bind(null, id, "nda")} accept=".pdf" teaser submitLabel="Cargar NDA" label="Cargar NDA de la empresa (PDF)" hint="El acuerdo de confidencialidad que usa su empresa o su asesor." />
+            )}
             <div className="label-caps mt-32 mb-8">Documentos para la sala de documentos · solo compradores autorizados</div>
             {docs.length > 0 && (
               <div className="card rows mb-16">
@@ -260,6 +279,7 @@ export default async function Editar({ params, searchParams }: { params: Promise
             <h2 className="h2">Enviar a revisión</h2>
             <p className="c-lead mt-8 mb-24">Nuestro equipo revisa que la publicación no revele la identidad y que la información sea coherente. Tiempo habitual: 2 a 3 días hábiles. Recibirá una notificación con el resultado.</p>
             <div className="panel-muted mb-24">
+              {nda && <div className="small mb-12">NDA: {nda.originalName} · lo verán los interesados al solicitar información</div>}
               <div className="label-caps mb-8">Solo verán el equipo y los compradores que usted autorice</div>
               <div style={{ fontSize: 15 }}>Nombre: {l.legalName ?? "—"}{l.city ? ` · ${l.city}` : ""}</div>
               {docs.map((d) => <div key={d.id} className="small mt-4">{d.originalName} · {DOC_PERM_BADGE[d.permission]?.label}</div>)}

@@ -184,6 +184,10 @@ export function docMode(
   requestStatus?: string | null,
 ): DocMode {
   if (ctx.isAdmin || ctx.isTeam) return "descarga";
+  if (doc.kind === "nda") {
+    // El NDA del vendedor lo revisa y descarga quien ya solicitó información (para leerlo con su área legal).
+    return ctx.engagement ? "descarga" : listing.status === "publicada" ? "lectura" : "ninguno";
+  }
   if (doc.kind === "teaser") {
     // El teaser no confidencial se revisa junto con la publicación.
     return listing.status === "publicada" || ctx.engagement ? "lectura" : "ninguno";
@@ -202,5 +206,6 @@ export const INLINE_VIEWABLE = ["application/pdf", "image/jpeg", "image/png"];
 /** Nombre que ve el usuario. Antes de autorización nunca se expone el nombre original. */
 export function displayName(doc: ListingDocument, listing: Listing, ctx: ListingCtx): string {
   if (doc.kind === "teaser") return `Teaser ${listing.code}.pdf`;
+  if (doc.kind === "nda") return `NDA ${listing.code}.pdf`;
   return ctx.confidential ? doc.originalName : "Documento confidencial";
 }

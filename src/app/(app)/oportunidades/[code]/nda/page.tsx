@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireMember } from "@/lib/auth";
 import { loadListing } from "@/lib/access";
-import { ACCESS_BADGE, NDA_VERSION } from "@/lib/domain";
+import { ACCESS_BADGE } from "@/lib/domain";
+import { ndaSource } from "@/lib/nda-source";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { ndaSections } from "@/lib/nda";
 import { signatureStatus } from "@/lib/signature";
@@ -23,6 +24,7 @@ export default async function NdaPage({ params }: { params: Promise<{ code: stri
   if (ctx.isTeam || ctx.isAdmin) redirect(`/oportunidades/${code}`);
   const e = ctx.engagement;
   const sig = signatureStatus();
+  const src = await ndaSource(l.id, code);
 
   return (
     <div className="page page-narrow">
@@ -41,7 +43,8 @@ export default async function NdaPage({ params }: { params: Promise<{ code: stri
           <NdaFlow
             code={code}
             sections={ndaSections(code)}
-            version={NDA_VERSION}
+            version={src.version}
+            doc={src.doc ? { view: `/api/documentos/${src.doc.id}/abrir?modo=ver`, download: `/api/documentos/${src.doc.id}/abrir?modo=descargar` } : null}
             defaults={{ name: user.name, title: user.title ?? "", org: user.organization?.name ?? "", email: user.email }}
             signature={{ mode: sig.mode, label: sig.label, configured: sig.configured }}
             action={signNdaAction.bind(null, code)}
@@ -72,7 +75,7 @@ export default async function NdaPage({ params }: { params: Promise<{ code: stri
                   <div><dt>Firmante</dt><dd>{e.nda.signerName} · {e.nda.signerTitle}</dd></div>
                   <div><dt>Organización</dt><dd>{e.nda.signerOrg}{e.clientName ? ` · en representación de ${e.clientName}` : ""}</dd></div>
                   <div><dt>Fecha</dt><dd className="num">{fmtDateTime(e.nda.completedAt)}</dd></div>
-                  <div><dt>Versión del texto</dt><dd className="num">{e.nda.ndaVersion} · huella {e.nda.textHash.slice(0, 12)}…</dd></div>
+                  <div><dt>Documento aceptado</dt><dd className="num">{e.nda.ndaVersion} · huella {e.nda.textHash.slice(0, 12)}…</dd></div>
                   <div><dt>Vigencia</dt><dd>Hasta el {fmtDate(e.nda.validUntil)} (se mantiene aunque se revoque el acceso)</dd></div>
                 </dl>
               </div>

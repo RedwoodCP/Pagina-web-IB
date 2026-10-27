@@ -57,7 +57,7 @@ export default async function Revisar({ params }: { params: Promise<{ id: string
             {l.documents.length === 0 && <div className="row c-lead">Sin archivos.</div>}
             {l.documents.map((d) => (
               <div key={d.id} className="row">
-                <div className="row-main"><div>{d.kind === "teaser" ? "Teaser · " : ""}{d.originalName}</div><div className="small c-lead">{fmtSize(d.size)} · {d.kind === "teaser" ? "Visible para miembros: revise que no identifique a la empresa" : DOC_PERM_BADGE[d.permission]?.label}</div></div>
+                <div className="row-main"><div>{d.kind === "teaser" ? "Teaser · " : d.kind === "nda" ? "NDA · " : ""}{d.originalName}</div><div className="small c-lead">{fmtSize(d.size)} · {d.kind === "teaser" ? "Visible para miembros: revise que no identifique a la empresa" : d.kind === "nda" ? "Visible para interesados antes de autorización: revise que no identifique a la empresa" : DOC_PERM_BADGE[d.permission]?.label}</div></div>
                 <a className="btn btn-secondary btn-sm" href={`/api/documentos/${d.id}/abrir?modo=ver`} target="_blank" rel="noopener">Ver</a>
               </div>
             ))}

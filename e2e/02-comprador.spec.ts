@@ -63,6 +63,11 @@ test.describe("Comprador", () => {
     await page.goto("/oportunidades/RW-1215");
     await page.getByRole("button", { name: "Solicitar información" }).last().click();
     await expect(page).toHaveURL(/RW-1215\/nda/);
+    // NDA propio de la empresa, visible y descargable para quien solicitó información
+    await expect(page.locator('iframe[title="NDA RW-1215"]')).toBeVisible();
+    const dl = await page.request.get((await page.getByRole("link", { name: "Descargar" }).getAttribute("href"))!);
+    expect(dl.status()).toBe(200);
+    expect(dl.headers()["content-disposition"]).toContain("NDA%20RW-1215.pdf");
     await page.getByRole("button", { name: "Continuar" }).click();
     await expect(page.getByText("Confirme que leyó el acuerdo completo.")).toBeVisible();
     await page.getByLabel("He leído el acuerdo completo").check();

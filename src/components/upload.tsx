@@ -14,6 +14,7 @@ export function UploadForm({
   label,
   hint,
   maxMb = 25,
+  submitLabel,
 }: {
   action: (p: ActionState, fd: FormData) => Promise<ActionState>;
   accept: string;
@@ -22,6 +23,7 @@ export function UploadForm({
   label: string;
   hint: string;
   maxMb?: number;
+  submitLabel?: string;
 }) {
   const [state, run, pending] = useActionState(action, {});
   const [name, setName] = useState<string | null>(null);
@@ -79,7 +81,7 @@ export function UploadForm({
       <div>
         <button className="btn btn-secondary" disabled={pending || !name || !!clientErr} aria-busy={pending || undefined}>
           {pending ? <span className="spinner" /> : <span aria-hidden="true" className="ms">upload</span>}
-          {pending ? "Cargando y verificando…" : teaser ? "Cargar teaser" : "Cargar documento"}
+          {pending ? "Cargando y verificando…" : submitLabel ?? (teaser ? "Cargar teaser" : "Cargar documento")}
         </button>
       </div>
     </form>

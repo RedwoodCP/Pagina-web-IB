@@ -8,6 +8,7 @@ type Props = {
   code: string;
   sections: [string, string][];
   version: string;
+  doc: { view: string; download: string } | null;
   defaults: { name: string; title: string; org: string; email: string };
   signature: { mode: "registro_interno" | "proveedor"; label: string; configured: boolean };
   action: (prev: ActionState, fd: FormData) => Promise<ActionState>;
@@ -20,7 +21,7 @@ function Err({ m }: { m?: string }) {
   return m ? <div className="field-error"><span aria-hidden="true" className="ms">error</span>{m}</div> : null;
 }
 
-export function NdaFlow({ code, sections, version, defaults, signature, action }: Props) {
+export function NdaFlow({ code, sections, version, doc, defaults, signature, action }: Props) {
   const [state, run, pending] = useActionState(action, {});
   const [step, setStep] = useState(1);
   const [v, setV] = useState({ read: false, signerName: defaults.name, signerTitle: defaults.title, signerOrg: defaults.org, signerEmail: defaults.email, representation: "organizacion", clientName: "", typedName: "", consent: false });
@@ -76,15 +77,31 @@ export function NdaFlow({ code, sections, version, defaults, signature, action }
         {state.error && <div className="form-banner mb-16" role="alert"><span aria-hidden="true" className="ms">error</span><div>{state.error}</div></div>}
         {/* Todos los campos permanecen en el formulario; el servidor valida de nuevo. */}
         <div hidden={step !== 1}>
-          <div className="hstack between gap-12 mb-16" style={{ flexWrap: "wrap" }}>
-            <h2 className="h2">Acuerdo de confidencialidad unilateral</h2>
-            <span className="small c-lead">Texto de ejemplo · versión {version} · pendiente de revisión jurídica</span>
-          </div>
-          <div tabIndex={0} aria-label="Texto del acuerdo" style={{ maxHeight: 340, overflow: "auto", border: "1px solid rgba(26,26,26,.12)", background: "#FAFAFA", padding: "20px 24px", fontSize: 15, lineHeight: 1.7 }}>
-            {sections.map(([t, b], i) => (
-              <p key={t} style={{ margin: "0 0 12px" }}><strong>{i + 1}. {t}.</strong> {b}</p>
-            ))}
-          </div>
+          {doc ? (
+            <>
+              <div className="hstack between gap-12 mb-16" style={{ flexWrap: "wrap" }}>
+                <h2 className="h2">Acuerdo de confidencialidad de la empresa</h2>
+                <div className="wrap-gap">
+                  <a className="btn btn-secondary btn-sm" href={doc.view} target="_blank" rel="noopener"><span aria-hidden="true" className="ms">open_in_new</span>Abrir en otra pestaña</a>
+                  <a className="btn btn-secondary btn-sm" href={doc.download}><span aria-hidden="true" className="ms">download</span>Descargar</a>
+                </div>
+              </div>
+              <p className="small c-lead mb-12">Documento proporcionado por el vendedor o su asesor ({version}). Puede descargarlo para revisarlo con su área legal.</p>
+              <iframe src={doc.view} title={`NDA ${code}`} style={{ width: "100%", height: 520, border: "1px solid rgba(26,26,26,.12)", background: "#FAFAFA" }} />
+            </>
+          ) : (
+            <>
+              <div className="hstack between gap-12 mb-16" style={{ flexWrap: "wrap" }}>
+                <h2 className="h2">Acuerdo de confidencialidad unilateral</h2>
+                <span className="small c-lead">Texto de ejemplo · versión {version} · pendiente de revisión jurídica</span>
+              </div>
+              <div tabIndex={0} aria-label="Texto del acuerdo" style={{ maxHeight: 340, overflow: "auto", border: "1px solid rgba(26,26,26,.12)", background: "#FAFAFA", padding: "20px 24px", fontSize: 15, lineHeight: 1.7 }}>
+                {sections.map(([t, b], i) => (
+                  <p key={t} style={{ margin: "0 0 12px" }}><strong>{i + 1}. {t}.</strong> {b}</p>
+                ))}
+              </div>
+            </>
+          )}
           <label className="check mt-16">
             <input type="checkbox" name="read" checked={v.read} onChange={set("read")} aria-invalid={!!errs.read || undefined} />
             <span>He leído el acuerdo completo y deseo continuar.</span>

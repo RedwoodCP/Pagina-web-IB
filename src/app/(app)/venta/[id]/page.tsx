@@ -189,10 +189,10 @@ export default async function Gestion({ params, searchParams }: { params: Promis
               <div className="card rows">
                 {l.documents.map((d) => (
                   <div key={d.id} className="row">
-                    <Icon name={d.kind === "teaser" ? "campaign" : "description"} />
+                    <Icon name={d.kind === "teaser" ? "campaign" : d.kind === "nda" ? "contract" : "description"} />
                     <div className="row-main">
                       <div>{d.originalName}</div>
-                      <div className="small c-lead">{d.kind === "teaser" ? "Teaser · visible para miembros" : d.category} · {fmtSize(d.size)} · {fmtDate(d.createdAt)}</div>
+                      <div className="small c-lead">{d.kind === "teaser" ? "Teaser · visible para miembros" : d.kind === "nda" ? "NDA de la empresa · visible para interesados" : d.category} · {fmtSize(d.size)} · {fmtDate(d.createdAt)}</div>
                     </div>
                     {d.kind === "documento" && can ? (
                       <DocPermForm action={updateDocumentAction.bind(null, id, d.id)} category={d.category} permission={d.permission} categories={DOC_CATEGORIES} />

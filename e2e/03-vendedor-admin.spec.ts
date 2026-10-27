@@ -94,6 +94,10 @@ test.describe("Vendedor y administración", () => {
     await teaserForm.locator('input[type="file"]').setInputFiles(pdf);
     await teaserForm.getByRole("button", { name: "Cargar teaser" }).click();
     await expect(page.getByText(/se mostrará como «Teaser RW-/)).toBeVisible();
+    const ndaForm = page.locator("form").filter({ has: page.getByRole("button", { name: "Cargar NDA" }) });
+    await ndaForm.locator('input[type="file"]').setInputFiles(pdf);
+    await ndaForm.getByRole("button", { name: "Cargar NDA" }).click();
+    await expect(page.getByText(/se mostrará como «NDA RW-/)).toBeVisible();
     const docForm = page.locator("form").filter({ has: page.getByRole("button", { name: "Cargar documento" }) });
     await docForm.locator('input[type="file"]').setInputFiles(heic);
     await expect(page.getByText(/Formato no admitido \(\.heic\)/)).toBeVisible();

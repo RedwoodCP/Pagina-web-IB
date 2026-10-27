@@ -126,33 +126,34 @@ export async function saveStepAction(id: string, step: number, _: ActionState, f
   redirect(`/venta/${id}/editar?paso=${step + 1}`);
 }
 
-export async function uploadDocumentAction(id: string, kind: "teaser" | "documento", _: ActionState, fd: FormData): Promise<ActionState> {
+export async function uploadDocumentAction(id: string, kind: "teaser" | "nda" | "documento", _: ActionState, fd: FormData): Promise<ActionState> {
   const c = await manageCtx(id);
   if ("error" in c) return { error: c.error };
-  if (kind === "teaser" && !editable(c.l.status)) return { error: "El teaser solo se puede cambiar en borrador o con cambios solicitados, porque lo revisa el equipo." };
+  if (kind !== "documento" && !editable(c.l.status))
+    return { error: `${kind === "nda" ? "El NDA" : "El teaser"} solo se puede cambiar en borrador o con cambios solicitados, porque lo revisa el equipo.` };
   const file = fd.get("file");
   if (!(file instanceof File) || file.size === 0) return { fields: { file: "Seleccione un archivo." } };
   const buf = Buffer.from(await file.arrayBuffer());
-  const v = validateUpload(file.name, buf, kind === "teaser");
+  const v = validateUpload(file.name, buf, kind !== "documento");
   if ("error" in v) return { fields: { file: v.error } };
   const category = str(fd, "category", 30);
   const permission = str(fd, "permission", 20);
   if (kind === "documento" && !DOC_CATEGORIES.includes(category as never)) return { fields: { category: "Seleccione una categoría." } };
   if (kind === "documento" && !["descarga", "lectura", "restringido"].includes(permission)) return { fields: { permission: "Seleccione el permiso." } };
   const key = await storeFile(buf);
-  if (kind === "teaser") {
-    const old = await db.listingDocument.findMany({ where: { listingId: id, kind: "teaser" } });
+  if (kind !== "documento") {
+    const old = await db.listingDocument.findMany({ where: { listingId: id, kind } });
     for (const o of old) await deleteStored(o.storageKey);
-    await db.listingDocument.deleteMany({ where: { listingId: id, kind: "teaser" } });
+    await db.listingDocument.deleteMany({ where: { listingId: id, kind } });
   }
   const name = file.name.replace(/[\\/:*?"<>|]+/g, "_").slice(0, 180);
   const doc = await db.listingDocument.create({
-    data: { listingId: id, kind, originalName: name, storageKey: key, mime: v.mime, size: buf.length, category: kind === "teaser" ? "Comercial" : category, permission: kind === "teaser" ? "lectura" : permission, uploadedById: c.user.id },
+    data: { listingId: id, kind, originalName: name, storageKey: key, mime: v.mime, size: buf.length, category: kind === "documento" ? category : kind === "nda" ? "Legal" : "Comercial", permission: kind === "documento" ? permission : "lectura", uploadedById: c.user.id },
   });
   await audit(c.user.id, "document.uploaded", "document", doc.id, { listingId: id, meta: { kind } });
   revalidatePath(`/venta/${id}`);
   revalidatePath(`/venta/${id}/editar`);
-  return { ok: true, message: kind === "teaser" ? "Teaser cargado." : `«${name}» cargado.` };
+  return { ok: true, message: kind === "teaser" ? "Teaser cargado." : kind === "nda" ? "NDA cargado." : `«${name}» cargado.` };
 }
 
 export async function updateDocumentAction(id: string, docId: string, fd: FormData): Promise<R> {
@@ -174,7 +175,7 @@ export async function deleteDocumentAction(id: string, docId: string): Promise<R
   if ("error" in c) return { error: c.error };
   const doc = await db.listingDocument.findFirst({ where: { id: docId, listingId: id } });
   if (!doc) return { error: "Documento no encontrado." };
-  if (doc.kind === "teaser" && !editable(c.l.status)) return { error: "No puede quitar el teaser de una publicación aprobada." };
+  if (doc.kind !== "documento" && !editable(c.l.status)) return { error: `No puede quitar ${doc.kind === "nda" ? "el NDA" : "el teaser"} de una publicación aprobada.` };
   await db.listingDocument.delete({ where: { id: docId } });
   await deleteStored(doc.storageKey);
   await audit(c.user.id, "document.deleted", "document", docId, { listingId: id, meta: { kind: doc.kind } });
@@ -193,6 +194,7 @@ export async function submitListingAction(id: string, _: ActionState, fd: FormDa
   if (!l.legalName || !l.sector || !l.region) missing.push("paso 1 (empresa)");
   if (!l.dealType || !l.title || !l.summary || (!l.negotiable && (l.priceMin == null || l.priceMax == null))) missing.push("paso 2 (operación)");
   if (l.sales == null || l.ebitda == null) missing.push("paso 3 (finanzas)");
+  if (!(await db.listingDocument.count({ where: { listingId: id, kind: "nda" } }))) missing.push("paso 4 (NDA de la empresa)");
   if (missing.length) return { error: `Faltan datos obligatorios en: ${missing.join(", ")}.` };
   if (identityLeaks(l.legalName, [l.title, l.summary])) return { error: "El título o la descripción contienen datos que identifican a la empresa. Revise el paso 2." };
   await db.listing.update({ where: { id }, data: { status: "revision", submittedAt: new Date(), reviewNote: null, step: 6 } });

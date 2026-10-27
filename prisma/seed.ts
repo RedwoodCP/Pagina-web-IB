@@ -107,6 +107,11 @@ async function main() {
       await db.listingDocument.create({ data: { listingId: l.id, kind: "teaser", originalName: `Teaser ${o.code}.pdf`, storageKey: key, mime: "application/pdf", size: 4200, category: "Comercial", permission: "lectura", uploadedById: own.id } });
     }
   }
+  // NDA de la empresa (PDF del vendedor) en dos oportunidades; el resto usa el texto de ejemplo.
+  for (const code of ["RW-1042", "RW-1215"]) {
+    const key = await store(await demoPdf(`Acuerdo de confidencialidad - Proyecto ${code}`, ["Documento de ejemplo cargado por el vendedor.", `Proyecto ${code}: el Receptor mantendra la confidencialidad de la informacion.`, "Vigencia: 24 meses.", "Texto ficticio para pruebas."]));
+    await db.listingDocument.create({ data: { listingId: listings[code]!.id, kind: "nda", originalName: `NDA Proyecto ${code}.pdf`, storageKey: key, mime: "application/pdf", size: 3800, category: "Legal", permission: "lectura", uploadedById: (owners[code] ?? { id: vendedor.id }).id } });
+  }
   // Grupo Ocotal excluido de RW-1388 (ejemplo de exclusión por organización)
   await db.listingExclusion.create({ data: { listingId: listings["RW-1388"]!.id, organizationId: oOcotal.id } });
 

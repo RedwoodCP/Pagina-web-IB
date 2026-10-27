@@ -9,8 +9,8 @@ import { notify } from "@/lib/notify";
 import { setFlash } from "@/lib/flash";
 import { loadListing } from "@/lib/access";
 import { invalid, okEmail, str, type ActionState } from "@/lib/action";
-import { INTEREST_LEVELS, NDA_VALIDITY_MONTHS, NDA_VERSION } from "@/lib/domain";
-import { ndaText, ndaHash } from "@/lib/nda";
+import { INTEREST_LEVELS, NDA_VALIDITY_MONTHS } from "@/lib/domain";
+import { ndaSource } from "@/lib/nda-source";
 import { parseLocalDateTime } from "@/lib/format";
 import { createEnvelope, signatureStatus } from "@/lib/signature";
 
@@ -90,14 +90,16 @@ export async function signNdaAction(code: string, _: ActionState, fd: FormData):
   }
   if (Object.keys(f).length) return invalid(f, fd);
 
-  const text = ndaText(code);
+  const src = await ndaSource(c.listing.id, code);
+  const text = src.text;
+  const textHash = await src.hash();
   const meta = await requestMeta();
   if (sig.mode === "proveedor") {
     const env = await createEnvelope({ engagementId: e.id, signerName: d.signerName, signerEmail: d.signerEmail, ndaText: text });
     if (!env.ok) return { error: `No se pudo iniciar la firma electrónica: ${env.error}`, values: { ...d } };
     await db.ndaSignature.upsert({
       where: { engagementId: e.id },
-      create: { engagementId: e.id, ndaVersion: NDA_VERSION, textHash: ndaHash(code), ...pickSigner(d), method: "proveedor", provider: sig.provider, providerRef: env.providerRef, status: "pendiente", ...meta },
+      create: { engagementId: e.id, ndaVersion: src.version, textHash, ...pickSigner(d), method: "proveedor", provider: sig.provider, providerRef: env.providerRef, status: "pendiente", ...meta },
       update: { providerRef: env.providerRef, status: "pendiente" },
     });
     await audit(c.user.id, "nda.provider_started", "engagement", e.id, { listingId: c.listing.id });
@@ -111,8 +113,8 @@ export async function signNdaAction(code: string, _: ActionState, fd: FormData):
   await db.$transaction([
     db.ndaSignature.upsert({
       where: { engagementId: e.id },
-      create: { engagementId: e.id, ndaVersion: NDA_VERSION, textHash: ndaHash(code), ...pickSigner(d), method: "registro_interno", status: "completado", completedAt: now, validUntil, ...meta },
-      update: { ...pickSigner(d), method: "registro_interno", status: "completado", completedAt: now, validUntil, ...meta },
+      create: { engagementId: e.id, ndaVersion: src.version, textHash, ...pickSigner(d), method: "registro_interno", status: "completado", completedAt: now, validUntil, ...meta },
+      update: { ...pickSigner(d), ndaVersion: src.version, textHash, method: "registro_interno", status: "completado", completedAt: now, validUntil, ...meta },
     }),
     // Firmar NO concede acceso: solo deja la solicitud de acceso en «pendiente».
     db.engagement.update({
@@ -120,7 +122,7 @@ export async function signNdaAction(code: string, _: ActionState, fd: FormData):
       data: { ndaStatus: "firmado", accessStatus: e.accessStatus === "none" ? "pendiente" : e.accessStatus, representation: d.representation, clientName: d.representation === "tercero" ? d.clientName : null },
     }),
   ]);
-  await audit(c.user.id, "nda.signed", "engagement", e.id, { listingId: c.listing.id, meta: { method: "registro_interno", version: NDA_VERSION } });
+  await audit(c.user.id, "nda.signed", "engagement", e.id, { listingId: c.listing.id, meta: { method: "registro_interno", version: src.version, hash: textHash.slice(0, 16) } });
   await notify(await teamIds(c.listing.id), `${d.signerOrg} aceptó el NDA de ${code} y espera su decisión de acceso.`, `/venta/${c.listing.id}`);
   await setFlash("NDA registrado. Su solicitud de acceso está pendiente de autorización.");
   redirect(`/oportunidades/${code}/nda`);
