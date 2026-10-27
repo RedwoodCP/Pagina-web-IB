@@ -77,7 +77,9 @@ test.describe("Comprador", () => {
     await expect(page.getByText("Indique el cargo del firmante.")).toBeVisible();
     await page.getByLabel(/^Cargo/).fill("Director de desarrollo corporativo");
     await page.getByRole("button", { name: "Continuar" }).click();
-    await expect(page.getByText("Sin proveedor de firma electrónica configurado.")).toBeVisible();
+    // Con NDA propio de la empresa, la opción sugerida es subirlo firmado; aquí se prueba la aceptación registrada.
+    await expect(page.getByText("Subir el NDA firmado")).toBeVisible();
+    await page.locator("label.chip", { hasText: "Aceptar en la plataforma" }).click();
     await expect(page.getByText(/no es\s+una firma electrónica avanzada/)).toBeVisible();
     await page.getByLabel(/Escriba su nombre completo/).fill("Otra Persona");
     await page.getByRole("button", { name: "Registrar aceptación del NDA" }).click();

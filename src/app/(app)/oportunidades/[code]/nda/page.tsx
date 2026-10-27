@@ -8,7 +8,8 @@ import { ndaSource } from "@/lib/nda-source";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { ndaSections } from "@/lib/nda";
 import { signatureStatus } from "@/lib/signature";
-import { signNdaAction } from "@/app/actions/buyer";
+import { signNdaAction, uploadSignedNdaAction } from "@/app/actions/buyer";
+import { ActionForm, Field, Submit } from "@/components/form";
 import { Badge, Banner, Icon } from "@/components/ui";
 import { Steps, processSteps } from "@/components/process";
 import { NdaFlow } from "./nda-flow";
@@ -71,13 +72,34 @@ export default async function NdaPage({ params }: { params: Promise<{ code: stri
               <div className="card">
                 <div style={{ padding: "20px 20px 0" }}><h2 className="h2">Registro del NDA</h2></div>
                 <dl className="kv mt-12">
-                  <div><dt>Método</dt><dd>{e.nda.method === "registro_interno" ? "Aceptación registrada en la plataforma (no es firma electrónica avanzada)" : `Firma electrónica · ${e.nda.provider}`}</dd></div>
+                  <div><dt>Método</dt><dd>{e.nda.method === "documento_firmado" ? "NDA firmado cargado por el comprador" : e.nda.method === "registro_interno" ? "Aceptación registrada en la plataforma (no es firma electrónica avanzada)" : `Firma electrónica · ${e.nda.provider}`}</dd></div>
                   <div><dt>Firmante</dt><dd>{e.nda.signerName} · {e.nda.signerTitle}</dd></div>
                   <div><dt>Organización</dt><dd>{e.nda.signerOrg}{e.clientName ? ` · en representación de ${e.clientName}` : ""}</dd></div>
                   <div><dt>Fecha</dt><dd className="num">{fmtDateTime(e.nda.completedAt)}</dd></div>
                   <div><dt>Documento aceptado</dt><dd className="num">{e.nda.ndaVersion} · huella {e.nda.textHash.slice(0, 12)}…</dd></div>
                   <div><dt>Vigencia</dt><dd>Hasta el {fmtDate(e.nda.validUntil)} (se mantiene aunque se revoque el acceso)</dd></div>
+                  <div>
+                    <dt>NDA firmado</dt>
+                    <dd>
+                      {e.nda.signedKey ? (
+                        <span className="wrap-gap">
+                          <a href={`/api/nda-firmado/${e.id}`} target="_blank" rel="noopener">{e.nda.signedName}</a>
+                          <span className="small c-lead">cargado el {fmtDateTime(e.nda.signedAt)}</span>
+                        </span>
+                      ) : (
+                        <span className="c-lead">No cargado</span>
+                      )}
+                    </dd>
+                  </div>
                 </dl>
+                {e.accessStatus !== "autorizado" && (
+                  <div style={{ padding: 20, borderTop: "1px solid rgba(26,26,26,.1)" }}>
+                    <ActionForm action={uploadSignedNdaAction.bind(null, code)} className="stack gap-12" resetOnSuccess>
+                      <Field name="signedFile" type="file" accept=".pdf,.jpg,.jpeg,.png" label={e.nda.signedKey ? "Reemplazar NDA firmado" : "Cargar NDA firmado"} hint="PDF, o foto o escaneo legible (JPG o PNG). Solo lo ven usted, el vendedor y administración." style={{ paddingTop: 9 }} />
+                      <div><Submit className="btn btn-secondary btn-sm" icon="upload" pendingText="Cargando…">{e.nda.signedKey ? "Reemplazar" : "Cargar NDA firmado"}</Submit></div>
+                    </ActionForm>
+                  </div>
+                )}
               </div>
             )}
           </div>

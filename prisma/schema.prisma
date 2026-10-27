@@ -292,9 +292,17 @@ model NdaSignature {
   signerOrg      String
   signerEmail    String
   representation String
+  // documento_firmado: el comprador cargó el NDA firmado (PDF o imagen).
   // registro_interno: aceptación registrada en la plataforma (sin proveedor de firma).
   // proveedor: firma gestionada por un proveedor externo (DocuSign, Dropbox Sign, …).
   method         String
+  // NDA firmado cargado por el comprador (archivo privado; solo comprador, vendedor y administración)
+  signedKey      String?
+  signedName     String?
+  signedMime     String?
+  signedSize     Int?
+  signedHash     String?
+  signedAt       DateTime?
   provider       String?
   providerRef    String?
   status         String    @default("pendiente") // pendiente | completado | rechazado

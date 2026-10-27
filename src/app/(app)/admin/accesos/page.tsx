@@ -15,7 +15,7 @@ export default async function Accesos({ searchParams }: { searchParams: Promise<
   const estado = sp.estado ?? "todas";
   const all = await db.engagement.findMany({
     where: sp.op ? { listing: { code: sp.op } } : {},
-    include: { listing: { select: { code: true, title: true, id: true } }, user: { select: { name: true, organization: { select: { name: true } } } }, nda: { select: { method: true } } },
+    include: { listing: { select: { code: true, title: true, id: true } }, user: { select: { name: true, organization: { select: { name: true } } } }, nda: { select: { method: true, signedKey: true } } },
     orderBy: { updatedAt: "desc" },
   });
   const n = (s: string) => all.filter((e) => e.accessStatus === s).length;
@@ -40,6 +40,7 @@ export default async function Accesos({ searchParams }: { searchParams: Promise<
               </div>
               <Badge b={e.ndaStatus === "firmado" ? (e.nda?.method === "registro_interno" ? NDA_BADGE.aceptado! : NDA_BADGE.firmado!) : NDA_BADGE.pendiente_firma!} />
               <Badge b={ACCESS_BADGE[e.accessStatus]!} />
+              {e.nda?.signedKey && <a className="btn btn-secondary btn-sm" href={`/api/nda-firmado/${e.id}`} target="_blank" rel="noopener">NDA firmado</a>}
               {e.ndaStatus === "firmado" && (
                 <div className="row-actions">
                   {e.accessStatus !== "autorizado" && <ActionButton action={adminAccessAction.bind(null, e.id, "autorizado")} confirm={{ title: "Autorizar acceso (intervención)", body: "Se notificará al comprador y al vendedor." }} confirmLabel="Autorizar" {...reason}>Autorizar</ActionButton>}

@@ -60,6 +60,8 @@ export const ACTION_LABEL: Record<string, string> = {
   "engagement.requested": "Solicitó información de una oportunidad",
   "nda.signed": "Firmó / aceptó el NDA",
   "nda.provider_started": "Inició firma con proveedor",
+  "nda.signed_uploaded": "Cargó el NDA firmado",
+  "nda.signed_viewed": "Consultó un NDA firmado",
   "access.authorized": "Autorizó acceso",
   "access.rejected": "Rechazó acceso",
   "access.revoked": "Revocó acceso",

@@ -131,6 +131,9 @@ export default async function Gestion({ params, searchParams }: { params: Promis
                     </div>
                     <div className="row-actions">
                       <Badge b={ndaB} title={e.nda ? `${e.nda.signerName} · ${fmtDateTime(e.nda.completedAt)}` : undefined} />
+                      {e.nda?.signedKey && (
+                        <a className="btn btn-secondary btn-sm" href={`/api/nda-firmado/${e.id}`} target="_blank" rel="noopener"><Icon name="contract" />Ver NDA firmado</a>
+                      )}
                       <Badge b={ACCESS_BADGE[e.accessStatus]!} />
                       {e.ndaStatus !== "firmado" ? (
                         <span className="small c-lead">Esperando firma del NDA</span>

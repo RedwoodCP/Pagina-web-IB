@@ -15,7 +15,7 @@ type Props = {
 };
 
 const LABELS = ["Revisar acuerdo", "Datos del firmante", "Firma", "Estado"];
-const STEP_OF: Record<string, number> = { read: 1, signerName: 2, signerTitle: 2, signerOrg: 2, signerEmail: 2, representation: 2, clientName: 2, typedName: 3, consent: 3 };
+const STEP_OF: Record<string, number> = { read: 1, signerName: 2, signerTitle: 2, signerOrg: 2, signerEmail: 2, representation: 2, clientName: 2, typedName: 3, consent: 3, signedFile: 3, consentFile: 3 };
 
 function Err({ m }: { m?: string }) {
   return m ? <div className="field-error"><span aria-hidden="true" className="ms">error</span>{m}</div> : null;
@@ -24,7 +24,7 @@ function Err({ m }: { m?: string }) {
 export function NdaFlow({ code, sections, version, doc, defaults, signature, action }: Props) {
   const [state, run, pending] = useActionState(action, {});
   const [step, setStep] = useState(1);
-  const [v, setV] = useState({ read: false, signerName: defaults.name, signerTitle: defaults.title, signerOrg: defaults.org, signerEmail: defaults.email, representation: "organizacion", clientName: "", typedName: "", consent: false });
+  const [v, setV] = useState({ read: false, signerName: defaults.name, signerTitle: defaults.title, signerOrg: defaults.org, signerEmail: defaults.email, representation: "organizacion", clientName: "", typedName: "", consent: false, consentFile: false, mode: doc ? "archivo" : "registro" });
   const [local, setLocal] = useState<Record<string, string>>({});
   const errs = { ...local, ...(state.fields ?? {}) };
 
@@ -144,25 +144,59 @@ export function NdaFlow({ code, sections, version, doc, defaults, signature, act
         <div hidden={step !== 3}>
           {signature.mode === "registro_interno" ? (
             <>
-              <h2 className="h2 mb-8">Aceptación del acuerdo</h2>
-              <div className="form-banner warn mb-24" role="note">
-                <span aria-hidden="true" className="ms">info</span>
-                <div>
-                  <strong>Sin proveedor de firma electrónica configurado.</strong> Al continuar, la plataforma registrará su aceptación con
-                  nombre, cargo, organización, fecha y hora, dirección IP, navegador y la versión exacta del texto. Este registro <strong>no es
-                  una firma electrónica avanzada ni certificada</strong>; el valor jurídico debe confirmarlo su área legal.
+              <h2 className="h2 mb-16">Firma del acuerdo</h2>
+              <fieldset style={{ border: 0, padding: 0, margin: "0 0 24px" }}>
+                <legend className="field-label" style={{ marginBottom: 10 }}>¿Cómo desea firmar?</legend>
+                <div className="chips">
+                  <label className="chip">
+                    <input type="radio" name="mode" value="archivo" checked={v.mode === "archivo"} onChange={set("mode")} />
+                    Subir el NDA firmado
+                  </label>
+                  <label className="chip">
+                    <input type="radio" name="mode" value="registro" checked={v.mode === "registro"} onChange={set("mode")} />
+                    Aceptar en la plataforma
+                  </label>
                 </div>
-              </div>
-              <div className="field">
-                <label htmlFor="typedName">Escriba su nombre completo para confirmar *</label>
-                <input id="typedName" name="typedName" className="input" value={v.typedName} onChange={set("typedName")} placeholder={v.signerName} aria-invalid={!!errs.typedName || undefined} style={{ fontSize: 20 }} />
-                <Err m={errs.typedName} />
-              </div>
-              <label className="check mt-16">
-                <input type="checkbox" name="consent" checked={v.consent} onChange={set("consent")} aria-invalid={!!errs.consent || undefined} />
-                <span>Acepto el acuerdo de confidencialidad de {code} en {v.representation === "propia" ? "nombre propio" : v.representation === "tercero" ? `representación de ${v.clientName || "mi cliente"}` : `representación de ${v.signerOrg}`}.</span>
-              </label>
-              <Err m={errs.consent} />
+              </fieldset>
+              {v.mode === "archivo" ? (
+                <>
+                  <p className="c-lead mb-16" style={{ lineHeight: 1.6 }}>
+                    {doc ? "Descargue el NDA de la empresa (paso 1), fírmelo" : "Firme el acuerdo"} y adjunte el documento firmado en PDF, o una foto o escaneo legible (JPG o PNG).
+                    El vendedor lo verá antes de decidir sobre su acceso. Solo lo ven usted, el vendedor y administración.
+                  </p>
+                  <div className="field">
+                    <label htmlFor="signedFile">NDA firmado *</label>
+                    <input id="signedFile" name="signedFile" type="file" accept=".pdf,.jpg,.jpeg,.png" className="input" style={{ paddingTop: 9 }} aria-invalid={!!errs.signedFile || undefined} />
+                    <Err m={errs.signedFile} />
+                  </div>
+                  <label className="check mt-16">
+                    <input type="checkbox" name="consentFile" checked={v.consentFile} onChange={set("consentFile")} aria-invalid={!!errs.consentFile || undefined} />
+                    <span>Declaro que el archivo es el NDA de {code} firmado por {v.signerName || "el firmante indicado"}.</span>
+                  </label>
+                  <Err m={errs.consentFile} />
+                </>
+              ) : (
+                <>
+                  <div className="form-banner warn mb-24" role="note">
+                    <span aria-hidden="true" className="ms">info</span>
+                    <div>
+                      La plataforma registrará su aceptación con nombre, cargo, organización, fecha y hora, dirección IP, navegador y la huella del
+                      documento. Este registro <strong>no es una firma electrónica avanzada ni certificada</strong>; el valor jurídico debe confirmarlo
+                      su área legal.
+                    </div>
+                  </div>
+                  <div className="field">
+                    <label htmlFor="typedName">Escriba su nombre completo para confirmar *</label>
+                    <input id="typedName" name="typedName" className="input" value={v.typedName} onChange={set("typedName")} placeholder={v.signerName} aria-invalid={!!errs.typedName || undefined} style={{ fontSize: 20 }} />
+                    <Err m={errs.typedName} />
+                  </div>
+                  <label className="check mt-16">
+                    <input type="checkbox" name="consent" checked={v.consent} onChange={set("consent")} aria-invalid={!!errs.consent || undefined} />
+                    <span>Acepto el acuerdo de confidencialidad de {code} en {v.representation === "propia" ? "nombre propio" : v.representation === "tercero" ? `representación de ${v.clientName || "mi cliente"}` : `representación de ${v.signerOrg}`}.</span>
+                  </label>
+                  <Err m={errs.consent} />
+                </>
+              )}
             </>
           ) : (
             <>
@@ -180,11 +214,11 @@ export function NdaFlow({ code, sections, version, doc, defaults, signature, act
             <button type="button" className="btn btn-secondary btn-lg" onClick={() => setStep(step - 1)}>Atrás</button>
           )}
           {step < 3 ? (
-            <button type="button" className="btn btn-lg" onClick={next}>Continuar</button>
+            <button key="continuar" type="button" className="btn btn-lg" onClick={next}>Continuar</button>
           ) : (
-            <button className="btn btn-lg" disabled={pending || (signature.mode === "proveedor" && !signature.configured)} aria-busy={pending || undefined}>
+            <button key="enviar" type="submit" className="btn btn-lg" disabled={pending || (signature.mode === "proveedor" && !signature.configured)} aria-busy={pending || undefined}>
               {pending && <span className="spinner" />}
-              {signature.mode === "registro_interno" ? "Registrar aceptación del NDA" : "Enviar a firma electrónica"}
+              {signature.mode !== "registro_interno" ? "Enviar a firma electrónica" : v.mode === "archivo" ? "Enviar NDA firmado" : "Registrar aceptación del NDA"}
             </button>
           )}
         </div>

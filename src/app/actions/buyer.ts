@@ -11,6 +11,8 @@ import { loadListing } from "@/lib/access";
 import { invalid, okEmail, str, type ActionState } from "@/lib/action";
 import { INTEREST_LEVELS, NDA_VALIDITY_MONTHS } from "@/lib/domain";
 import { ndaSource } from "@/lib/nda-source";
+import { createHash } from "node:crypto";
+import { deleteStored, storeFile, validateUpload } from "@/lib/files";
 import { parseLocalDateTime } from "@/lib/format";
 import { createEnvelope, signatureStatus } from "@/lib/signature";
 
@@ -74,6 +76,7 @@ export async function signNdaAction(code: string, _: ActionState, fd: FormData):
     representation: str(fd, "representation", 20),
     clientName: str(fd, "clientName", 160),
     typed: str(fd, "typedName", 120),
+    mode: str(fd, "mode", 20) === "archivo" ? "archivo" : "registro",
   };
   const f: Record<string, string> = {};
   if (!fd.get("read")) f.read = "Confirme que leyó el acuerdo completo.";
@@ -84,9 +87,16 @@ export async function signNdaAction(code: string, _: ActionState, fd: FormData):
   if (!["propia", "organizacion", "tercero"].includes(d.representation)) f.representation = "Indique en nombre de quién firma.";
   if (d.representation === "tercero" && !d.clientName) f.clientName = "Indique a quién representa (puede ser una descripción genérica).";
   const sig = signatureStatus();
+  let signed: Awaited<ReturnType<typeof readSignedFile>> | null = null;
   if (sig.mode === "registro_interno") {
-    if (d.typed.toLowerCase() !== d.signerName.toLowerCase()) f.typedName = `Escriba el nombre del firmante exactamente: ${d.signerName || "—"}.`;
-    if (!fd.get("consent")) f.consent = "Debe confirmar que acepta el acuerdo con este registro.";
+    if (d.mode === "archivo") {
+      signed = await readSignedFile(fd);
+      if ("error" in signed) f.signedFile = signed.error;
+      if (!fd.get("consentFile")) f.consentFile = "Confirme que el archivo es el NDA firmado por el firmante indicado.";
+    } else {
+      if (d.typed.toLowerCase() !== d.signerName.toLowerCase()) f.typedName = `Escriba el nombre del firmante exactamente: ${d.signerName || "—"}.`;
+      if (!fd.get("consent")) f.consent = "Debe confirmar que acepta el acuerdo con este registro.";
+    }
   }
   if (Object.keys(f).length) return invalid(f, fd);
 
@@ -110,11 +120,13 @@ export async function signNdaAction(code: string, _: ActionState, fd: FormData):
   const now = new Date();
   const validUntil = new Date(now);
   validUntil.setMonth(validUntil.getMonth() + NDA_VALIDITY_MONTHS);
+  const method = signed && !("error" in signed) ? "documento_firmado" : "registro_interno";
+  const file = signed && !("error" in signed) ? await storeSigned(signed) : {};
   await db.$transaction([
     db.ndaSignature.upsert({
       where: { engagementId: e.id },
-      create: { engagementId: e.id, ndaVersion: src.version, textHash, ...pickSigner(d), method: "registro_interno", status: "completado", completedAt: now, validUntil, ...meta },
-      update: { ...pickSigner(d), ndaVersion: src.version, textHash, method: "registro_interno", status: "completado", completedAt: now, validUntil, ...meta },
+      create: { engagementId: e.id, ndaVersion: src.version, textHash, ...pickSigner(d), method, status: "completado", completedAt: now, validUntil, ...meta, ...file },
+      update: { ...pickSigner(d), ndaVersion: src.version, textHash, method, status: "completado", completedAt: now, validUntil, ...meta, ...file },
     }),
     // Firmar NO concede acceso: solo deja la solicitud de acceso en «pendiente».
     db.engagement.update({
@@ -122,10 +134,59 @@ export async function signNdaAction(code: string, _: ActionState, fd: FormData):
       data: { ndaStatus: "firmado", accessStatus: e.accessStatus === "none" ? "pendiente" : e.accessStatus, representation: d.representation, clientName: d.representation === "tercero" ? d.clientName : null },
     }),
   ]);
-  await audit(c.user.id, "nda.signed", "engagement", e.id, { listingId: c.listing.id, meta: { method: "registro_interno", version: src.version, hash: textHash.slice(0, 16) } });
-  await notify(await teamIds(c.listing.id), `${d.signerOrg} aceptó el NDA de ${code} y espera su decisión de acceso.`, `/venta/${c.listing.id}`);
-  await setFlash("NDA registrado. Su solicitud de acceso está pendiente de autorización.");
+  await audit(c.user.id, "nda.signed", "engagement", e.id, { listingId: c.listing.id, meta: { method, version: src.version, hash: textHash.slice(0, 16) } });
+  await notify(
+    await teamIds(c.listing.id),
+    method === "documento_firmado" ? `${d.signerOrg} cargó el NDA firmado de ${code} y espera su decisión de acceso.` : `${d.signerOrg} aceptó el NDA de ${code} y espera su decisión de acceso.`,
+    `/venta/${c.listing.id}`,
+  );
+  await setFlash(method === "documento_firmado" ? "NDA firmado cargado. Su solicitud de acceso está pendiente de autorización." : "NDA registrado. Su solicitud de acceso está pendiente de autorización.");
   redirect(`/oportunidades/${code}/nda`);
+}
+
+// ---------------------------------------------------------------------------
+// NDA firmado cargado por el comprador
+
+const SIGNED_TYPES = ["application/pdf", "image/jpeg", "image/png"];
+
+async function readSignedFile(fd: FormData): Promise<{ error: string } | { buf: Buffer; name: string; mime: string }> {
+  const file = fd.get("signedFile");
+  if (!(file instanceof File) || file.size === 0) return { error: "Adjunte el NDA firmado (PDF, JPG o PNG)." };
+  const buf = Buffer.from(await file.arrayBuffer());
+  const v = validateUpload(file.name, buf);
+  if ("error" in v) return { error: v.error };
+  if (!SIGNED_TYPES.includes(v.mime)) return { error: "El NDA firmado debe ser PDF, JPG o PNG." };
+  return { buf, name: file.name.replace(/[\\/:*?"<>|]+/g, "_").slice(0, 180), mime: v.mime };
+}
+
+async function storeSigned(f: { buf: Buffer; name: string; mime: string }) {
+  return {
+    signedKey: await storeFile(f.buf),
+    signedName: f.name,
+    signedMime: f.mime,
+    signedSize: f.buf.length,
+    signedHash: createHash("sha256").update(f.buf).digest("hex"),
+    signedAt: new Date(),
+  };
+}
+
+/** Cargar o reemplazar el NDA firmado después de haber aceptado (mientras el acceso no esté autorizado). */
+export async function uploadSignedNdaAction(code: string, _: ActionState, fd: FormData): Promise<ActionState> {
+  const c = await buyerCtx(code);
+  if ("error" in c) return { error: c.error };
+  const e = c.ctx.engagement;
+  if (!e || e.ndaStatus !== "firmado" || !e.nda) return { error: "Primero complete el paso del NDA." };
+  if (e.accessStatus === "autorizado") return { error: "Su acceso ya fue autorizado; el NDA firmado no puede reemplazarse." };
+  const signed = await readSignedFile(fd);
+  if ("error" in signed) return { fields: { signedFile: signed.error } };
+  const old = e.nda.signedKey;
+  const file = await storeSigned(signed);
+  await db.ndaSignature.update({ where: { id: e.nda.id }, data: { ...file, method: e.nda.method === "proveedor" ? "proveedor" : "documento_firmado" } });
+  if (old) await deleteStored(old);
+  await audit(c.user.id, "nda.signed_uploaded", "engagement", e.id, { listingId: c.listing.id, meta: { hash: file.signedHash.slice(0, 16) } });
+  await notify(await teamIds(c.listing.id), `${e.organizationName ?? c.user.name} cargó el NDA firmado de ${code}.`, `/venta/${c.listing.id}`);
+  revalidatePath(`/oportunidades/${code}/nda`);
+  return { ok: true, message: "NDA firmado cargado. El vendedor ya puede revisarlo." };
 }
 
 function pickSigner(d: { signerName: string; signerTitle: string; signerOrg: string; signerEmail: string; representation: string }) {

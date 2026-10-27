@@ -7,6 +7,10 @@ export async function purgeDemoData(db: PrismaClient) {
   const demoUsers = await db.user.findMany({ where: { isDemo: true }, select: { id: true } });
   const ids = demoUsers.map((u) => u.id);
   const docs = await db.listingDocument.findMany({ where: { listing: { OR: [{ isDemo: true }, { ownerId: { in: ids } }] } }, select: { storageKey: true } });
+  const signed = await db.ndaSignature.findMany({
+    where: { signedKey: { not: null }, engagement: { OR: [{ isDemo: true }, { userId: { in: ids } }, { listing: { OR: [{ isDemo: true }, { ownerId: { in: ids } }] } }] } },
+    select: { signedKey: true },
+  });
   const listings = await db.listing.deleteMany({ where: { OR: [{ isDemo: true }, { ownerId: { in: ids } }] } });
   await db.engagement.deleteMany({ where: { OR: [{ isDemo: true }, { userId: { in: ids } }] } });
   await db.invitation.deleteMany({ where: { isDemo: true } });
@@ -18,6 +22,7 @@ export async function purgeDemoData(db: PrismaClient) {
   const users = await db.user.deleteMany({ where: { isDemo: true } });
   await db.organization.deleteMany({ where: { isDemo: true, users: { none: {} }, listings: { none: {} } } });
   for (const d of docs) await removeObject(d.storageKey);
+  for (const s of signed) if (s.signedKey) await removeObject(s.signedKey);
   return { users: users.count, listings: listings.count, files: docs.length };
 }
 
