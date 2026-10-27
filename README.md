@@ -85,7 +85,8 @@ design/                             prototipo, guía y recursos de marca de refe
 | Asistente del vendedor, borradores, carga real de archivos, revisión y aprobación | Funciona |
 | Bitácora, gestión de usuarios y permisos, exclusiones, colaboradores | Funciona |
 | **Firma electrónica del NDA** | **Requiere proveedor.** Hoy se registra una «aceptación» (nombre, cargo, fecha, IP, navegador, versión y huella del texto) y la interfaz dice expresamente que no es una firma electrónica avanzada. Adaptador preparado en `src/lib/signature.ts` (`SIGNATURE_PROVIDER`). |
-| **Texto del NDA, aviso de privacidad y términos** | **Pendientes del área jurídica.** El NDA es el texto de ejemplo del prototipo, rotulado como tal. |
+| **NDA** | Cada vendedor carga el PDF del NDA de su empresa (obligatorio para enviar a revisión). El comprador lo lee y descarga en la plataforma; al aceptarlo se guarda la huella sha256 de ese archivo. Las oportunidades sin NDA propio usan el texto de ejemplo. |
+| **Aviso de privacidad y términos** | **Pendientes del área jurídica.** |
 | **Correo transaccional** | **Requiere proveedor.** Sin él, los correos quedan en Admin › Correos y el enlace de invitación se muestra al administrador. Punto de integración: `src/lib/notify.ts`. |
 | Antivirus de archivos, verificación en dos pasos, calendario y videollamada | No incluidos; señalados en Admin › Integraciones. |
 | Almacenamiento de archivos | Disco local en desarrollo; Supabase Storage (bucket privado) en Vercel. |
