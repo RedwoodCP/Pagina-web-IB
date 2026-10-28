@@ -18,7 +18,14 @@ export default async function Configuracion() {
   const sig = signatureStatus();
   const rows: [string, string, boolean, string][] = [
     ["Firma electrónica del NDA", sig.label, sig.mode === "proveedor" && sig.configured, "SIGNATURE_PROVIDER, SIGNATURE_API_KEY, SIGNATURE_WEBHOOK_SECRET · adaptador en src/lib/signature.ts"],
-    ["Correo transaccional", env.emailProvider === "none" ? "Sin proveedor: los correos quedan en la bandeja de salida" : `Proveedor «${env.emailProvider}» (adaptador pendiente)`, false, "EMAIL_PROVIDER, EMAIL_API_KEY, EMAIL_FROM · src/lib/notify.ts"],
+    [
+      "Correo transaccional",
+      env.emailProvider === "resend"
+        ? `Resend · remitente ${process.env.EMAIL_FROM ?? "(falta EMAIL_FROM)"}. El estado de cada envío aparece en Correos.`
+        : "Sin proveedor: los correos quedan en la bandeja de salida (Correos)",
+      env.emailProvider === "resend" && !!process.env.EMAIL_API_KEY && !!process.env.EMAIL_FROM,
+      "EMAIL_PROVIDER=resend, EMAIL_API_KEY, EMAIL_FROM · src/lib/notify.ts",
+    ],
     [
       "Almacenamiento de archivos",
       storageMode() === "supabase"

@@ -87,7 +87,7 @@ design/                             prototipo, guía y recursos de marca de refe
 | **Firma electrónica del NDA** | **Requiere proveedor.** Hoy se registra una «aceptación» (nombre, cargo, fecha, IP, navegador, versión y huella del texto) y la interfaz dice expresamente que no es una firma electrónica avanzada. Adaptador preparado en `src/lib/signature.ts` (`SIGNATURE_PROVIDER`). |
 | **NDA** | Cada vendedor carga el PDF del NDA de su empresa (obligatorio para enviar a revisión). El comprador lo lee y descarga en la plataforma; al aceptarlo se guarda la huella sha256 de ese archivo. Las oportunidades sin NDA propio usan el texto de ejemplo. |
 | **Aviso de privacidad y términos** | **Pendientes del área jurídica.** |
-| **Correo transaccional** | **Requiere proveedor.** Sin él, los correos quedan en Admin › Correos y el enlace de invitación se muestra al administrador. Punto de integración: `src/lib/notify.ts`. |
+| **Correo transaccional** | Conectado con **Resend** (`EMAIL_PROVIDER=resend`, `EMAIL_API_KEY`, `EMAIL_FROM` con dominio verificado). Sin proveedor, los correos quedan en Admin › Correos y el enlace de invitación se muestra al administrador. Cada envío y su estado quedan registrados. |
 | Antivirus de archivos, verificación en dos pasos, calendario y videollamada | No incluidos; señalados en Admin › Integraciones. |
 | Almacenamiento de archivos | Disco local en desarrollo; Supabase Storage (bucket privado) en Vercel. |
 | Visor protegido | Los PDF y las imágenes se abren en el visor del navegador con marca de agua. Un visor que impida capturas no es posible en la web; XLSX y DOCX en modo lectura requieren conversión a PDF (pendiente). |
