@@ -23,7 +23,7 @@ async function issueInvitation(adminId: string, email: string, profile: string, 
   const link = `${env.appUrl}/invitacion/${t.token}`;
   const sent = await sendEmail(
     email,
-    "Invitación a la red privada de transacciones",
+    `Invitación a ${env.platformName}`,
     `Recibió una invitación personal (${PROFILES[profile]}). Vigente hasta el ${fmtDate(t.expiresAt)}.\n\n${message ? message + "\n\n" : ""}Acepte la invitación aquí: ${link}\n\nEste enlace es personal y de un solo uso.`,
   );
   return { inv, link, sent: sent.sent };
@@ -87,7 +87,7 @@ export async function resendInvitationAction(id: string): Promise<R & { link?: s
   const t = newInvitationToken();
   await db.invitation.update({ where: { id }, data: { tokenHash: t.tokenHash, expiresAt: t.expiresAt, status: "enviada", createdAt: new Date() } });
   const link = `${env.appUrl}/invitacion/${t.token}`;
-  const sent = await sendEmail(inv.email, "Invitación a la red privada de transacciones", `Le reenviamos su invitación, vigente ${INVITATION_DAYS} días: ${link}`);
+  const sent = await sendEmail(inv.email, `Invitación a ${env.platformName}`, `Le reenviamos su invitación, vigente ${INVITATION_DAYS} días: ${link}`);
   await audit(admin.id, "invitation.resent", "invitation", id, { meta: { email: inv.email } });
   revalidatePath("/admin/invitaciones");
   return { message: `Invitación reenviada. Nueva vigencia: ${fmtDate(t.expiresAt)}.${sent.sent ? "" : " Sin proveedor de correo: el enlace está en Admin › Correos."}` };

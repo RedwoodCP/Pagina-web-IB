@@ -69,7 +69,7 @@ export default async function Landing() {
                 <span>EJEMPLO</span>
               </div>
               <div style={{ marginTop: 20, fontSize: 13, fontWeight: 700, letterSpacing: ".06em" }}>
-                RW-1042 <span style={{ fontWeight: 400, color: "#AEAEAE", letterSpacing: ".12em" }}>· MANUFACTURA</span>
+                RW-1042 <span style={{ fontWeight: 400, color: "#AEAEAE", letterSpacing: ".12em" }}>· INDUSTRIAL Y MANUFACTURA</span>
               </div>
               <div style={{ fontSize: 20, lineHeight: 1.3, margin: "8px 0 20px" }}>Fabricante de empaques flexibles para consumo masivo</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, borderTop: "1px solid rgba(255,255,255,.18)", paddingTop: 16 }}>

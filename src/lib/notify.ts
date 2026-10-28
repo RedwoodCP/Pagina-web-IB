@@ -53,7 +53,6 @@ const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 
 /** Versión HTML sobria con la identidad de Redwood (los enlaces se vuelven botones). */
 function emailHtml(subject: string, body: string) {
-  const logo = `${env.appUrl}/brand/redwood-logo.png`;
   const paragraphs = esc(body)
     .split(/\n{2,}/)
     .map((p) => {
@@ -68,8 +67,8 @@ function emailHtml(subject: string, body: string) {
   return `<!doctype html><html lang="es"><body style="margin:0;background:#FAFAFA;font-family:'Source Sans 3',Helvetica,Arial,sans-serif;color:#1A1A1A">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAFA;padding:32px 12px"><tr><td align="center">
 <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border:1px solid rgba(26,26,26,.1)">
-<tr><td style="padding:28px 32px 8px"><img src="${logo}" alt="Redwood Capital Partners" height="30" style="display:block;height:30px;width:auto"></td></tr>
+<tr><td style="padding:28px 32px 8px"><div style="font-size:13px;font-weight:600;letter-spacing:.2em;text-transform:uppercase">${esc(env.platformName)}</div><div style="font-size:11px;letter-spacing:.16em;color:#808080;margin-top:4px;text-transform:uppercase">Por Redwood Capital Partners</div></td></tr>
 <tr><td style="padding:16px 32px 8px"><h1 style="font-size:22px;font-weight:400;margin:0 0 16px">${esc(subject)}</h1><div style="font-size:15px;line-height:1.6;color:#444444">${paragraphs}</div></td></tr>
-<tr><td style="padding:16px 32px 28px;border-top:1px solid rgba(26,26,26,.08);font-size:12px;color:#808080">Red privada de transacciones · Mensaje automático, no responda a este correo si no lo esperaba.</td></tr>
+<tr><td style="padding:16px 32px 28px;border-top:1px solid rgba(26,26,26,.08);font-size:12px;color:#808080">${esc(env.platformName)} · Red privada de transacciones de Redwood Capital Partners · Mensaje automático.</td></tr>
 </table></td></tr></table></body></html>`;
 }

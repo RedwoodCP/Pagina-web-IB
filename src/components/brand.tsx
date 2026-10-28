@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-const platformName = () => process.env.PLATFORM_NAME || "";
+// Nombre de la plataforma. PLATFORM_NAME permite cambiarlo sin tocar el código.
+const platformName = () => process.env.PLATFORM_NAME || "Confidant";
 
 /** Marca sobre fondo oscuro o claro. Usa el logotipo oficial; nunca se redibuja. */
 export function Brand({ dark, href = "/", compact }: { dark?: boolean; href?: string; compact?: boolean }) {

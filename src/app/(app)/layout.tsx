@@ -95,7 +95,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <aside className="sidebar on-dark">
         <div className="sidebar-brand">
           <Brand dark href={user.isAdmin ? "/admin/solicitudes" : user.canBuy ? "/panel" : "/venta"} />
-          <div className="brand-sub">Red privada de transacciones</div>
         </div>
         <SideNav sections={sections} />
         <div className="sidebar-user">

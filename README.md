@@ -1,4 +1,4 @@
-# Red privada de transacciones · Redwood Capital Partners
+# Confidant · Red privada de transacciones de Redwood Capital Partners
 
 Plataforma web privada de compraventa de empresas: catálogo anónimo, NDA por oportunidad,
 autorización de acceso separada del NDA, espacio privado de operación, panel del vendedor y
@@ -143,5 +143,5 @@ exige Supabase porque su disco no es persistente). La zona horaria se fija con `
 
 ## Pendiente de decisión
 
-- **Nombre de la plataforma.** El prototipo usa «[Nombre de la plataforma]». Mientras no se defina, se muestra el logotipo de Redwood Capital Partners. Se cambia con `PLATFORM_NAME` en `.env`.
+- **Nombre de la plataforma:** Confidant (se muestra «CONFIDANT · Por Redwood Capital Partners»; `PLATFORM_NAME` permite cambiarlo).
 - **Logotipo.** Se recortó del manual de marca (variantes 1 y RW) sin redibujarlo. Para máxima nitidez, reemplace `public/brand/redwood-logo*.png` por los archivos originales en alta resolución o SVG.

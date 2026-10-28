@@ -14,7 +14,7 @@ export const env = {
     return secret();
   },
   appUrl: process.env.APP_URL || "http://localhost:3000",
-  platformName: process.env.PLATFORM_NAME || "",
+  platformName: process.env.PLATFORM_NAME || "Confidant",
   showDemo: (process.env.SHOW_DEMO_DATA ?? "true") === "true",
   storageDir: process.env.STORAGE_DIR || "./storage",
   signatureProvider: (process.env.SIGNATURE_PROVIDER || "none") as "none" | "docusign" | "dropboxsign",

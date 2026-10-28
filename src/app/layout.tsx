@@ -5,7 +5,7 @@ import "./globals.css";
 import { ToastHost } from "@/components/toast";
 import { readFlash } from "@/lib/flash";
 
-const name = process.env.PLATFORM_NAME || "Redwood Capital Partners";
+const name = process.env.PLATFORM_NAME || "Confidant";
 
 export const metadata: Metadata = {
   title: { default: `${name} · Red privada de transacciones`, template: `%s · ${name}` },
