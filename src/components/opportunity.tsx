@@ -60,7 +60,6 @@ export function OpportunityCard({ o, isAdmin }: { o: CatalogItem; isAdmin: boole
         <Icon name={SECTOR_ICON[o.sector ?? ""] ?? "domain"} size={34} />
         <div>
           <div style={{ fontSize: 11, letterSpacing: ".16em", fontWeight: 600, textTransform: "uppercase" }}>{o.sector}</div>
-          <div style={{ fontSize: 12, color: "#F0F0F0", marginTop: 4 }}>Imagen genérica · sin datos identificables</div>
         </div>
       </div>
       <div className="opp-body">
