@@ -114,6 +114,10 @@ export async function saveStepAction(id: string, step: number, _: ActionState, f
       history.push({ year: y, sales: s, ebitda: e });
     }
     if (fy && sales != null && ebitda != null && !Number.isNaN(sales) && !Number.isNaN(ebitda)) history.push({ year: fy, sales, ebitda });
+    const debt = num(fd, "debtToEbitda"), topClient = num(fd, "topClientPct"), intl = str(fd, "intlOps", 2);
+    if (Number.isNaN(debt) || (debt !== null && (debt < -20 || debt > 50))) f.debtToEbitda = "Ingrese un múltiplo válido (veces).";
+    if (Number.isNaN(topClient) || (topClient !== null && (topClient < 0 || topClient > 100))) f.topClientPct = "Ingrese un porcentaje entre 0 y 100.";
+    Object.assign(data, { debtToEbitda: debt, topClientPct: topClient, intlOps: intl === "si" ? true : intl === "no" ? false : null });
     const vis = (k: string) => (str(fd, k) === "autorizados" ? "autorizados" : "miembros");
     Object.assign(data, { sales, ebitda, fiscalYear: fy, financialHistory: JSON.stringify(history.sort((a, b) => a.year - b.year)), visSales: vis("visSales"), visEbitda: vis("visEbitda"), visMargin: vis("visMargin"), visPrice: vis("visPrice"), confidentialNotes: str(fd, "confidentialNotes", 2000) || null });
   }

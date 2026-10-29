@@ -183,6 +183,13 @@ export default async function Editar({ params, searchParams }: { params: Promise
               ))}
             </div>
             <p className="small c-lead mt-12">Si oculta el EBITDA pero muestra ventas y margen, el margen también se ocultará: con ambos se podría calcular el EBITDA.</p>
+            <div className="label-caps mt-32 mb-8">Datos adicionales (confidenciales, opcionales)</div>
+            <p className="small c-lead mb-16">No se muestran en el catálogo. Ayudan a nuestro equipo a presentar la empresa a compradores con búsquedas activas.</p>
+            <div className="grid-3">
+              <Field name="debtToEbitda" label="Deuda neta / EBITDA (veces)" optional inputMode="decimal" defaultValue={l.debtToEbitda?.toString() ?? ""} placeholder="Ej.: 1.5" />
+              <Select name="intlOps" label="¿Opera en otros países?" placeholder="Sin indicar" options={[["si", "Sí"], ["no", "No"]]} defaultValue={l.intlOps == null ? "" : l.intlOps ? "si" : "no"} />
+              <Field name="topClientPct" label="Ventas del cliente principal (%)" optional inputMode="decimal" defaultValue={l.topClientPct?.toString() ?? ""} placeholder="Ej.: 18" />
+            </div>
             <div className="mt-24">
               <TextArea name="confidentialNotes" label="Notas para compradores autorizados" optional rows={3} defaultValue={l.confidentialNotes ?? ""} />
             </div>

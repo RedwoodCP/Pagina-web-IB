@@ -61,6 +61,7 @@ const CRUMBS: [RegExp, string][] = [
   [/^\/admin\/invitaciones/, "Administración · Invitaciones"],
   [/^\/admin\/publicaciones/, "Administración · Publicaciones"],
   [/^\/admin\/accesos/, "Administración · Accesos"],
+  [/^\/admin\/busquedas/, "Administración · Búsquedas de compra"],
   [/^\/admin\/usuarios/, "Administración · Usuarios y permisos"],
   [/^\/admin\/bitacora/, "Administración · Bitácora"],
   [/^\/admin\/correos/, "Administración · Correos"],

@@ -34,7 +34,7 @@ Invitaciones de prueba: `/invitacion/demo-invitacion-vigente`, `/invitacion/demo
 ## Pruebas
 
 ```bash
-npx playwright test           # 15 pruebas E2E; usan su propia base (prisma/test.db) y storage-test/
+npx playwright test           # 19 pruebas E2E; usan su propia base (prisma/test.db) y storage-test/
 npm run typecheck
 ```
 
@@ -84,6 +84,7 @@ design/                             prototipo, guía y recursos de marca de refe
 | NDA y autorización separadas, espacio privado, preguntas, reuniones, interés, documentos por permiso | Funciona |
 | Asistente del vendedor, borradores, carga real de archivos, revisión y aprobación | Funciona |
 | Bitácora, gestión de usuarios y permisos, exclusiones, colaboradores | Funciona |
+| Búsquedas de compra (Admin › Búsquedas de compra): criterios obligatorios (ventas, margen EBITDA, región, industria) y opcionales (deuda/EBITDA, empleados, operación en otros países, concentración en el cliente principal), cruzadas con las oportunidades publicadas. Uso interno. | Funciona |
 | **Firma electrónica del NDA** | **Requiere proveedor.** Hoy se registra una «aceptación» (nombre, cargo, fecha, IP, navegador, versión y huella del texto) y la interfaz dice expresamente que no es una firma electrónica avanzada. Adaptador preparado en `src/lib/signature.ts` (`SIGNATURE_PROVIDER`). |
 | **NDA** | Cada vendedor carga el PDF del NDA de su empresa (obligatorio para enviar a revisión). El comprador lo lee y descarga en la plataforma; al aceptarlo se guarda la huella sha256 de ese archivo. Las oportunidades sin NDA propio usan el texto de ejemplo. |
 | **Aviso de privacidad y términos** | **Pendientes del área jurídica.** |

@@ -31,6 +31,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         { href: "/admin/invitaciones", label: "Invitaciones", icon: "forward_to_inbox" },
         { href: "/admin/publicaciones", label: "Publicaciones", icon: "fact_check", count: pubs },
         { href: "/admin/accesos", label: "Accesos", icon: "key", count: acc },
+        { href: "/admin/busquedas", label: "Búsquedas de compra", icon: "travel_explore" },
         { href: "/admin/usuarios", label: "Usuarios y permisos", icon: "group" },
         { href: "/admin/bitacora", label: "Bitácora", icon: "history" },
         { href: "/admin/correos", label: "Correos", icon: "mail" },

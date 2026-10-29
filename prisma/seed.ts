@@ -107,6 +107,9 @@ async function main() {
       await db.listingDocument.create({ data: { listingId: l.id, kind: "teaser", originalName: `Teaser ${o.code}.pdf`, storageKey: key, mime: "application/pdf", size: 4200, category: "Comercial", permission: "lectura", uploadedById: own.id } });
     }
   }
+  // Datos opcionales para búsquedas de compra (ficticios)
+  await db.listing.update({ where: { code: "RW-1042" }, data: { debtToEbitda: 1.2, intlOps: false, topClientPct: 14 } });
+  await db.listing.update({ where: { code: "RW-1552" }, data: { debtToEbitda: 0.8, intlOps: true, topClientPct: 22 } });
   // NDA de la empresa (PDF del vendedor) en dos oportunidades; el resto usa el texto de ejemplo.
   for (const code of ["RW-1042", "RW-1215"]) {
     const key = await store(await demoPdf(`Acuerdo de confidencialidad - Proyecto ${code}`, ["Documento de ejemplo cargado por el vendedor.", `Proyecto ${code}: el Receptor mantendra la confidencialidad de la informacion.`, "Vigencia: 24 meses.", "Texto ficticio para pruebas."]));

@@ -48,6 +48,7 @@ export default async function Revisar({ params }: { params: Promise<{ id: string
             <div><dt>Fundación</dt><dd>{l.foundedYear ?? "—"}</dd></div>
             <div><dt>Accionistas</dt><dd>{l.ownership ?? "—"}</dd></div>
             <div><dt>Cifras {l.fiscalYear}</dt><dd className="num">Ventas {fmtMoney(l.sales, l.currency)} · EBITDA {fmtMoney(l.ebitda, l.currency)} · Margen {fmtPct(margin)}</dd></div>
+            <div><dt>Para búsquedas</dt><dd className="small">Deuda/EBITDA: {l.debtToEbitda != null ? `${l.debtToEbitda}x` : "—"} · Otros países: {l.intlOps == null ? "—" : l.intlOps ? "Sí" : "No"} · Cliente principal: {l.topClientPct != null ? `${l.topClientPct}%` : "—"}</dd></div>
             <div><dt>Visibilidad</dt><dd className="small">Ventas: {l.visSales} · EBITDA: {l.visEbitda} · Margen: {l.visMargin} · Precio: {l.visPrice}</dd></div>
           </dl>
         </section>

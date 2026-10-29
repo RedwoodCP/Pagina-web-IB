@@ -8,6 +8,7 @@ const TABS = [
   ["invitaciones", "Invitaciones", "Invitaciones"],
   ["publicaciones", "Publicaciones", "Aprobación de publicaciones"],
   ["accesos", "Accesos", "Accesos a oportunidades"],
+  ["busquedas", "Búsquedas de compra", "Búsquedas de compra"],
   ["usuarios", "Usuarios", "Usuarios y permisos"],
   ["bitacora", "Bitácora", "Bitácora de acciones"],
   ["correos", "Correos", "Correos transaccionales"],

@@ -66,6 +66,7 @@ model User {
   invitationsSent   Invitation[]            @relation("InvitationSender")
   docAccessRequests DocumentAccessRequest[]
   passwordResets    PasswordReset[]
+  buySearches       BuySearch[]
 }
 
 model Session {
@@ -143,6 +144,10 @@ model Listing {
   ownership     String?
   advisorName   String?
   confidentialNotes String?
+  // Datos opcionales para cruzar con búsquedas de compra (confidenciales)
+  debtToEbitda   Float? // deuda neta / EBITDA (veces)
+  intlOps        Boolean? // opera en otros países; null = no informado
+  topClientPct   Float? // % de ventas del cliente principal
   financialHistory String @default("[]") // [{year, sales, ebitda}]
 
   // --- Datos anónimos visibles para miembros
@@ -378,4 +383,35 @@ model EmailOutbox {
   error     String?
   sentAt    DateTime?
   createdAt DateTime  @default(now())
+}
+
+/// Búsqueda de compra registrada por administración (mandato de compra). Uso interno.
+model BuySearch {
+  id         String   @id @default(cuid())
+  code       String   @unique // BC-####
+  status     String   @default("activa") // activa | pausada | cerrada
+  clientName String // confidencial: para quién se busca
+  notes      String?
+
+  // Obligatorios
+  currency  String // USD | MXN
+  salesMin  Float? // millones; al menos uno de min/max
+  salesMax  Float?
+  marginMin Float? // %; al menos uno de min/max
+  marginMax Float?
+  regions   String @default("[]") // JSON
+  sectors   String @default("[]") // JSON
+
+  // Opcionales
+  debtEbitdaMax Float?
+  employees     String  @default("[]") // JSON de EMPLOYEE_RANGES
+  intlOps       String  @default("indistinto") // indistinto | requerida | no
+  topClientMax  Float?
+
+  createdById String?
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
 }
