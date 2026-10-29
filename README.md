@@ -34,7 +34,7 @@ Invitaciones de prueba: `/invitacion/demo-invitacion-vigente`, `/invitacion/demo
 ## Pruebas
 
 ```bash
-npx playwright test           # 22 pruebas E2E; usan su propia base (prisma/test.db) y storage-test/
+npx playwright test           # 23 pruebas E2E; usan su propia base (prisma/test.db) y storage-test/
 npm run typecheck
 ```
 
@@ -85,6 +85,7 @@ design/                             prototipo, guía y recursos de marca de refe
 | Asistente del vendedor, borradores, carga real de archivos, revisión y aprobación | Funciona |
 | Bitácora, gestión de usuarios y permisos, exclusiones, colaboradores | Funciona |
 | Búsquedas de compra: el comprador las registra en Compra › Mis búsquedas (privadas: solo él y administración) y recibe aviso cuando se publica una oportunidad que coincide con lo que puede ver (nunca se comparan cifras confidenciales). Administración (Admin › Búsquedas de compra) también las registra para clientes: criterios obligatorios (ventas, margen EBITDA, región, industria) y opcionales (deuda/EBITDA, empleados, operación en otros países, concentración en el cliente principal), cruzadas con las oportunidades publicadas. Al aprobar una oportunidad que coincide, administración recibe notificación y correo. Uso interno. | Funciona |
+| Perfil del comprador para vendedores: el comprador publica un perfil anónimo de su búsqueda (título, descripción, tipo de comprador y PDF opcional) que administración revisa; vendedores y asesores lo ven en Venta › Compradores buscando y proponen una oportunidad publicada o una empresa aún no publicada. El comprador no ve quién propone; administración sí. | Funciona |
 | Vista de trabajo: un administrador que también compra o vende alterna entre «Administración» y «Compra y venta» (barra lateral o Mi perfil). En compra y venta actúa como cualquier miembro, sin permisos de administración. | Funciona |
 | **Firma electrónica del NDA** | **Requiere proveedor.** Hoy se registra una «aceptación» (nombre, cargo, fecha, IP, navegador, versión y huella del texto) y la interfaz dice expresamente que no es una firma electrónica avanzada. Adaptador preparado en `src/lib/signature.ts` (`SIGNATURE_PROVIDER`). |
 | **NDA** | Cada vendedor carga el PDF del NDA de su empresa (obligatorio para enviar a revisión). El comprador lo lee y descarga en la plataforma; al aceptarlo se guarda la huella sha256 de ese archivo. Las oportunidades sin NDA propio usan el texto de ejemplo. |

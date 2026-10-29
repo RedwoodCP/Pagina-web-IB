@@ -10,6 +10,10 @@ import { Badge, DemoFlag, Empty, Icon } from "@/components/ui";
 import { ActionButton } from "@/components/confirm";
 import { deleteBuySearchAction, setBuySearchStatusAction, updateBuySearchAction } from "@/app/actions/buy-search";
 import { BuySearchForm } from "@/components/buy-search-form";
+import { BuyPublication } from "@/components/buy-publication";
+import { BuyResponses } from "@/components/buy-responses";
+import { reviewPublicationAction } from "@/app/actions/buy-demand";
+import { PUBLICATION_BADGE } from "@/lib/buy-search";
 
 export const metadata: Metadata = { title: "Búsqueda de compra" };
 
@@ -46,7 +50,11 @@ function ListingRow({ l, m }: { l: Listing; m: ReturnType<typeof matchListing> }
 
 export default async function Busqueda({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const b = await db.buySearch.findUnique({ where: { id }, include: { createdBy: { select: { name: true } }, owner: { select: { name: true, email: true } } } });
+  const b = await db.buySearch.findUnique({ where: { id }, include: {
+      createdBy: { select: { name: true } },
+      owner: { select: { name: true, email: true, organization: { select: { type: true } } } },
+      responses: { include: { listing: { select: { code: true, title: true } }, responder: { select: { name: true, email: true } } }, orderBy: { createdAt: "desc" } },
+    } });
   if (!b) notFound();
   const c = criteria(b);
   const listings = await db.listing.findMany({ where: { status: "publicada", ...(env.showDemo ? {} : { isDemo: false }) }, orderBy: { publishedAt: "desc" } });
@@ -104,6 +112,24 @@ export default async function Busqueda({ params }: { params: Promise<{ id: strin
           <div className="card rows mb-24">{near.map(({ l, m }) => <ListingRow key={l.id} l={l} m={m} />)}</div>
         </>
       )}
+
+      {b.publication === "revision" && (
+        <div className="card card-pad mt-32">
+          <div className="hstack between wrap-gap mb-8">
+            <h3 className="h3"><Icon name="fact_check" /> Perfil para vendedores · por revisar</h3>
+            <Badge b={PUBLICATION_BADGE.revision!} />
+          </div>
+          <div className="label-caps mt-16">{b.title}</div>
+          <p className="mt-8" style={{ whiteSpace: "pre-wrap" }}>{b.summary}</p>
+          {b.teaserKey && <a className="btn btn-secondary btn-sm mt-12" href={`/api/busquedas/${b.id}/perfil`} target="_blank" rel="noopener"><Icon name="visibility" />Ver perfil PDF (revise que no identifique al comprador)</a>}
+          <div className="wrap-gap mt-16">
+            <ActionButton action={reviewPublicationAction.bind(null, id, "publicada")} className="btn btn-sm" icon="check" confirm={{ title: `Publicar ${b.code}`, body: "Vendedores y asesores verán este perfil anónimo y podrán proponer empresas." }} confirmLabel="Publicar">Aprobar y publicar</ActionButton>
+            <ActionButton action={reviewPublicationAction.bind(null, id, "rechazada")} icon="edit_note" reason reasonRequired reasonLabel="Cambios que necesita el comprador" confirm={{ title: "Solicitar cambios", body: "El comprador recibirá su comentario." }} confirmLabel="Solicitar cambios">Solicitar cambios</ActionButton>
+          </div>
+        </div>
+      )}
+      {b.publication !== "revision" && <div className="mt-32"><BuyPublication b={b} admin defaultType={b.owner?.organization?.type} /></div>}
+      <BuyResponses items={b.responses} admin />
 
       <div className="card card-pad mt-32">
         <h3 className="h3 mb-16"><Icon name="tune" /> Editar criterios</h3>

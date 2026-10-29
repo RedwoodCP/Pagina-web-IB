@@ -9,6 +9,8 @@ import { BUY_SEARCH_BADGE, INTL_OPS, criteria, matchPublic, rangeText, type Chec
 import { Badge, DemoFlag, Empty, Icon } from "@/components/ui";
 import { ActionButton } from "@/components/confirm";
 import { BuySearchForm } from "@/components/buy-search-form";
+import { BuyPublication } from "@/components/buy-publication";
+import { BuyResponses } from "@/components/buy-responses";
 import { deleteMyBuySearchAction, setMyBuySearchStatusAction, updateMyBuySearchAction } from "@/app/actions/buy-search";
 
 export const metadata: Metadata = { title: "Mi búsqueda" };
@@ -36,7 +38,10 @@ export default async function MiBusqueda({ params }: { params: Promise<{ id: str
   // Solo el dueño la ve; para cualquier otro, no existe.
   if (!b || b.ownerId !== user.id) notFound();
   const c = criteria(b);
-  const { items } = await getCatalog(user, parseFilters({}));
+  const [{ items }, responses] = await Promise.all([
+    getCatalog(user, parseFilters({})),
+    db.buySearchResponse.findMany({ where: { buySearchId: id }, include: { listing: { select: { code: true, title: true } }, responder: { select: { name: true, email: true } } }, orderBy: { createdAt: "desc" } }),
+  ]);
   const evaluated = items.filter((o) => !o.isOwn).map((o) => ({ o, m: matchPublic(b, o) }));
   const matches = evaluated.filter((x) => x.m.ok).sort((a, z) => z.m.score - a.m.score);
   // Coinciden en lo visible, pero alguna cifra es confidencial: nuestro equipo puede confirmarlo.
@@ -102,6 +107,9 @@ export default async function MiBusqueda({ params }: { params: Promise<{ id: str
           <div className="card rows mb-24">{hidden.map((x) => <Row key={x.o.id} {...x} />)}</div>
         </>
       )}
+
+      <div className="mt-32"><BuyPublication b={b} defaultType={user.organization?.type} /></div>
+      <BuyResponses items={responses} />
 
       <div className="card card-pad mt-32">
         <h2 className="h3 mb-16"><Icon name="tune" /> Editar criterios</h2>

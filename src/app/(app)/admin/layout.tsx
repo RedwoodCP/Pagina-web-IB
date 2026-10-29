@@ -10,7 +10,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     db.invitation.count({ where: { status: "enviada", expiresAt: { gt: new Date() } } }),
     db.listing.count({ where: { status: "revision" } }),
     db.engagement.count({ where: { accessStatus: "pendiente" } }),
-    db.buySearch.count({ where: { status: "activa" } }),
+    db.buySearch.count({ where: { publication: "revision" } }),
   ]);
   return (
     <div className="page">

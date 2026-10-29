@@ -19,7 +19,7 @@ export type Check = { label: string; result: "si" | "no" | "sin_dato"; detail: s
 
 export type BuyCriteria = ReturnType<typeof criteria>;
 
-export function criteria(b: BuySearch) {
+export function criteria(b: Pick<BuySearch, "regions" | "sectors" | "employees">) {
   return {
     regions: parseJson<string[]>(b.regions, []),
     sectors: parseJson<string[]>(b.sectors, []),
@@ -109,4 +109,23 @@ export function matchPublic(
     ? [{ label: "Empleados", result: !o.employees ? "sin_dato" : c.employees.includes(o.employees) ? "si" : "no", detail: o.employees ?? "—" }]
     : [];
   return { ok: required.every((r) => r.result === "si"), required, optional, score: optional.filter((x) => x.result === "si").length };
+}
+
+// ---------------------------------------------------------------------------
+// Publicación de la búsqueda para vendedores («perfil del comprador», anónimo)
+
+export const PUBLICATION_BADGE: Record<string, Badge> = {
+  privada: { label: "Privada", tone: "neutral", icon: "lock" },
+  revision: { label: "En revisión", tone: "warn", icon: "hourglass_top" },
+  publicada: { label: "Visible para vendedores", tone: "ok", icon: "campaign" },
+  rechazada: { label: "Cambios solicitados", tone: "err", icon: "edit_note" },
+};
+
+/** Quién puede ver las búsquedas publicadas: vendedores, asesores y administración. */
+export const canSeeDemand = (u: { isAdmin: boolean; canSell: boolean; isAdvisor: boolean }) => u.isAdmin || u.canSell || u.isAdvisor;
+
+/** Condición Prisma de búsquedas visibles para vendedores (nunca las propias). */
+export function demandWhere(userId: string) {
+  // ownerId es nulo en las búsquedas de administración: NOT { ownerId } las excluiría en SQL.
+  return { publication: "publicada", status: "activa", OR: [{ ownerId: null }, { ownerId: { not: userId } }] };
 }

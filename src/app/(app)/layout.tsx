@@ -19,10 +19,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const seller = user.canSell || user.isAdvisor;
 
   if (user.isAdmin) {
-    const [req, pubs, acc] = await Promise.all([
+    const [req, pubs, acc, bus] = await Promise.all([
       db.membershipRequest.count({ where: { status: "pendiente" } }),
       db.listing.count({ where: { status: "revision" } }),
       db.engagement.count({ where: { accessStatus: "pendiente" } }),
+      db.buySearch.count({ where: { publication: "revision" } }),
     ]);
     sections.push({
       title: "ADMINISTRACIÓN",
@@ -31,7 +32,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         { href: "/admin/invitaciones", label: "Invitaciones", icon: "forward_to_inbox" },
         { href: "/admin/publicaciones", label: "Publicaciones", icon: "fact_check", count: pubs },
         { href: "/admin/accesos", label: "Accesos", icon: "key", count: acc },
-        { href: "/admin/busquedas", label: "Búsquedas de compra", icon: "travel_explore" },
+        { href: "/admin/busquedas", label: "Búsquedas de compra", icon: "travel_explore", count: bus },
         { href: "/admin/usuarios", label: "Usuarios y permisos", icon: "group" },
         { href: "/admin/bitacora", label: "Bitácora", icon: "history" },
         { href: "/admin/correos", label: "Correos", icon: "mail" },
@@ -64,6 +65,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         items: [
           { href: "/venta", label: user.isAdvisor ? "Mis mandatos" : "Mis publicaciones", icon: "storefront", match: ["/venta$", "/venta/c"] },
           { href: "/venta/nueva", label: "Nueva publicación", icon: "add_box" },
+          { href: "/compradores", label: "Compradores buscando", icon: "person_search" },
         ],
       });
     sections.push({

@@ -68,6 +68,7 @@ model User {
   passwordResets    PasswordReset[]
   buySearches       BuySearch[]             @relation("BuySearchCreator")
   myBuySearches     BuySearch[]             @relation("BuySearchOwner")
+  buyResponses      BuySearchResponse[]
 }
 
 model Session {
@@ -193,6 +194,7 @@ model Listing {
   engagements   Engagement[]
   questions     Question[]
   exclusions    ListingExclusion[]
+  buyResponses  BuySearchResponse[]
 
   @@index([status])
 }
@@ -414,9 +416,37 @@ model BuySearch {
   // Comprador que la registró desde su perfil; null = registrada por administración para un cliente
   ownerId     String?
   owner       User?    @relation("BuySearchOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  // Publicación para vendedores («perfil del comprador», anónimo): privada | revision | publicada | rechazada
+  publication String    @default("privada")
+  title       String?
+  summary     String?
+  buyerType   String? // tipo de organización mostrado a vendedores (ORG_TYPES)
+  teaserKey   String?
+  teaserName  String?
+  teaserSize  Int?
+  reviewNote  String?
+  publishedAt DateTime?
+  responses   BuySearchResponse[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([status])
   @@index([ownerId])
+  @@index([publication])
+}
+
+/// Respuesta de un vendedor o asesor a una búsqueda publicada: «tengo una empresa que le puede interesar».
+model BuySearchResponse {
+  id          String    @id @default(cuid())
+  buySearchId String
+  buySearch   BuySearch @relation(fields: [buySearchId], references: [id], onDelete: Cascade)
+  responderId String
+  responder   User      @relation(fields: [responderId], references: [id], onDelete: Cascade)
+  listingId   String? // oportunidad publicada que propone; null = empresa aún no publicada
+  listing     Listing?  @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  message     String
+  createdAt   DateTime  @default(now())
+
+  @@index([buySearchId])
 }
