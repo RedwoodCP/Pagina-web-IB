@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireUser } from "@/lib/auth";
+import { hasMemberRoles, requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { hasDemoData } from "@/lib/demo";
 import { initials } from "@/lib/format";
@@ -85,11 +85,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     if (mobile.length < 4) mobile.push({ href: "/notificaciones", label: "Avisos", icon: "notifications" });
   }
 
+  // Administradores que también compran o venden alternan entre las dos vistas.
+  const switchTo = user.isAdmin && hasMemberRoles(user) ? "miembro" : !user.isAdmin && user.adminAvailable ? "admin" : null;
   const role = user.isAdmin
     ? "Administración"
     : [user.canBuy && user.canSell ? "Compra y venta" : user.canSell ? "Venta" : user.canBuy ? "Compra" : "", user.isAdvisor ? "Asesor" : "", user.organization?.name]
         .filter(Boolean)
-        .join(" · ");
+        .join(" · ") + (user.adminAvailable ? " · Vista de miembro" : "");
 
   return (
     <div className="shell">
@@ -98,6 +100,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <Brand dark href={user.isAdmin ? "/admin/solicitudes" : user.canBuy ? "/panel" : "/venta"} />
         </div>
         <SideNav sections={sections} />
+        {switchTo && (
+          <div className="view-switch">
+            <a href={`/api/modo?vista=${switchTo}`} className="nav-item">
+              <span aria-hidden="true" className="ms">swap_horiz</span>
+              <span className="grow">{switchTo === "miembro" ? "Cambiar a compra y venta" : "Volver a administración"}</span>
+            </a>
+          </div>
+        )}
         <div className="sidebar-user">
           <Link prefetch={false} href="/perfil" className="avatar" aria-label="Mi perfil">
             {initials(user.name)}

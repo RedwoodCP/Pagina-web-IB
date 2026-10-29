@@ -11,6 +11,7 @@ import { invalid, okEmail, str, type ActionState } from "@/lib/action";
 import { INVITATION_DAYS, PROFILES, invitationState } from "@/lib/domain";
 import { fmtDate } from "@/lib/format";
 import { purgeDemoData } from "@/lib/demo";
+import { alertBuySearchMatches } from "@/lib/buy-search-alerts";
 
 type R = { error?: string; message?: string };
 export type InviteResult = ActionState & { link?: string };
@@ -109,11 +110,13 @@ export async function reviewListingAction(id: string, decision: "publicada" | "c
   if (!l || l.status !== "revision") return { error: "La publicación no está en revisión." };
   const note = str(fd, "reason", 1500);
   if (decision === "cambios" && !note) return { error: "Indique qué cambios necesita el vendedor." };
-  await db.listing.update({ where: { id }, data: { status: decision, reviewNote: decision === "cambios" ? note : null, publishedAt: decision === "publicada" ? (l.publishedAt ?? new Date()) : l.publishedAt } });
+  const updated = await db.listing.update({ where: { id }, data: { status: decision, reviewNote: decision === "cambios" ? note : null, publishedAt: decision === "publicada" ? (l.publishedAt ?? new Date()) : l.publishedAt } });
+  const matched = decision === "publicada" ? await alertBuySearchMatches(updated) : [];
   await audit(admin.id, decision === "publicada" ? "listing.published" : "listing.changes_requested", "listing", id, { listingId: id, meta: { note } });
   await notify(l.ownerId, decision === "publicada" ? `${l.code} fue aprobada y ya está en el catálogo.` : `El equipo solicitó cambios a ${l.code}: ${note}`, decision === "publicada" ? `/venta/${id}` : `/venta/${id}/editar?paso=1`);
   revalidatePath("/admin/publicaciones");
-  return { message: decision === "publicada" ? `${l.code} aprobada y publicada en el catálogo.` : `Se solicitaron cambios para ${l.code}.` };
+  if (decision === "cambios") return { message: `Se solicitaron cambios para ${l.code}.` };
+  return { message: `${l.code} aprobada y publicada en el catálogo.${matched.length ? ` Coincide con ${matched.length === 1 ? "la búsqueda" : "las búsquedas"} ${matched.join(", ")}: se avisó a administración.` : ""}` };
 }
 
 /** Intervención excepcional del administrador sobre un acceso. Siempre con motivo. */

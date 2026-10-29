@@ -9,12 +9,21 @@ import { randomToken, sha256 } from "./crypto";
 import { env } from "./env";
 
 export const SESSION_COOKIE = "rw_session";
+/** Vista elegida por un administrador que también compra o vende: «miembro» desactiva la administración. */
+export const MODE_COOKIE = "rw_mode";
 const SESSION_HOURS = 12;
 const MAX_FAILED = 5;
 const LOCK_MINUTES = 15;
 let dummyHash: string | undefined;
 
-export type CurrentUser = User & { organization: Organization | null };
+/**
+ * isAdmin es el permiso efectivo: falso cuando un administrador eligió la vista de compra y venta.
+ * adminAvailable indica si la cuenta tiene el rol de administración (para volver a esa vista).
+ */
+export type CurrentUser = User & { organization: Organization | null; adminAvailable: boolean };
+
+/** Un administrador puede trabajar como miembro solo si además tiene perfil de compra, venta o asesor. */
+export const hasMemberRoles = (u: Pick<User, "canBuy" | "canSell" | "isAdvisor">) => u.canBuy || u.canSell || u.isAdvisor;
 
 export async function hashPassword(pw: string) {
   return bcrypt.hash(pw, 12);
@@ -46,6 +55,7 @@ export async function createSession(userId: string) {
     path: "/",
     expires: expiresAt,
   });
+  (await cookies()).delete(MODE_COOKIE);
 }
 
 export async function destroySession() {
@@ -53,6 +63,7 @@ export async function destroySession() {
   const token = c.get(SESSION_COOKIE)?.value;
   if (token) await db.session.deleteMany({ where: { id: sha256(token) } });
   c.delete(SESSION_COOKIE);
+  c.delete(MODE_COOKIE);
 }
 
 /** Usuario de la sesión actual, o null. Se memoiza por petición. */
@@ -64,7 +75,8 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     include: { user: { include: { organization: true } } },
   });
   if (!s || s.expiresAt < new Date() || s.user.status !== "activo") return null;
-  return s.user;
+  const asMember = s.user.isAdmin && hasMemberRoles(s.user) && (await cookies()).get(MODE_COOKIE)?.value === "miembro";
+  return { ...s.user, isAdmin: s.user.isAdmin && !asMember, adminAvailable: s.user.isAdmin };
 });
 
 /** Exige sesión; si falta, redirige a iniciar sesión. */
@@ -83,7 +95,7 @@ export async function requireMember(): Promise<CurrentUser> {
 
 export async function requireAdmin(): Promise<CurrentUser> {
   const u = await requireUser();
-  if (!u.isAdmin) redirect("/sin-permiso");
+  if (!u.isAdmin) redirect(u.adminAvailable ? "/api/modo?vista=admin" : "/sin-permiso");
   return u;
 }
 
