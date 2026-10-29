@@ -144,7 +144,13 @@ export async function uploadDocumentAction(id: string, kind: "teaser" | "nda" | 
   const permission = str(fd, "permission", 20);
   if (kind === "documento" && !DOC_CATEGORIES.includes(category as never)) return { fields: { category: "Seleccione una categoría." } };
   if (kind === "documento" && !["descarga", "lectura", "restringido"].includes(permission)) return { fields: { permission: "Seleccione el permiso." } };
-  const key = await storeFile(buf);
+  let key: string;
+  try {
+    key = await storeFile(buf);
+  } catch (err) {
+    console.error("No se pudo guardar el archivo:", err);
+    return { error: "No se pudo guardar el archivo en el almacenamiento. Intente de nuevo en unos minutos; si persiste, avise a administración." };
+  }
   if (kind !== "documento") {
     const old = await db.listingDocument.findMany({ where: { listingId: id, kind } });
     for (const o of old) await deleteStored(o.storageKey);

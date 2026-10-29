@@ -212,7 +212,7 @@ export default async function Editar({ params, searchParams }: { params: Promise
                 </ActionButton>
               </div>
             ) : (
-              <UploadForm maxMb={MAX_FILE_MB} action={uploadDocumentAction.bind(null, id, "teaser")} accept=".pdf" teaser label="Cargar teaser (PDF)" hint="Sin nombre, logotipo, fotografías identificables ni direcciones." />
+              <UploadForm maxMb={MAX_FILE_MB} action={uploadDocumentAction.bind(null, id, "teaser")} accept=".pdf" teaser autoSubmit label="Cargar teaser (PDF)" hint="Sin nombre, logotipo, fotografías identificables ni direcciones." />
             )}
             <div className="label-caps mt-32 mb-8">NDA de la empresa · obligatorio</div>
             <p className="small c-lead mb-12" style={{ maxWidth: 760 }}>
@@ -229,7 +229,7 @@ export default async function Editar({ params, searchParams }: { params: Promise
                 </ActionButton>
               </div>
             ) : (
-              <UploadForm maxMb={MAX_FILE_MB} action={uploadDocumentAction.bind(null, id, "nda")} accept=".pdf" teaser submitLabel="Cargar NDA" label="Cargar NDA de la empresa (PDF)" hint="El acuerdo de confidencialidad que usa su empresa o su asesor." />
+              <UploadForm maxMb={MAX_FILE_MB} action={uploadDocumentAction.bind(null, id, "nda")} accept=".pdf" teaser autoSubmit submitLabel="Cargar NDA" label="Cargar NDA de la empresa (PDF)" hint="El acuerdo de confidencialidad que usa su empresa o su asesor." />
             )}
             <div className="label-caps mt-32 mb-8">Documentos para la sala de documentos · solo compradores autorizados</div>
             {docs.length > 0 && (
@@ -248,6 +248,9 @@ export default async function Editar({ params, searchParams }: { params: Promise
             <div className="card" style={{ padding: 20 }}>
               <UploadForm maxMb={MAX_FILE_MB} action={uploadDocumentAction.bind(null, id, "documento")} accept={ACCEPT_ATTR} categories={DOC_CATEGORIES} label="Agregar archivo" hint="Estados financieros, memorándum, contratos… Defina categoría y permiso." />
             </div>
+            {!nda && (
+              <div className="mt-24"><Banner tone="warn">Falta cargar el NDA de la empresa. Puede continuar, pero no podrá enviar la publicación a revisión sin él.</Banner></div>
+            )}
             <div className="form-actions">
               <Link prefetch={false} href={`/venta/${id}/editar?paso=3`} className="btn btn-secondary btn-lg">Atrás</Link>
               <form action={advance.bind(null, id, 5)}>

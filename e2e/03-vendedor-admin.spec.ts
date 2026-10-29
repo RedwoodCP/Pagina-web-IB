@@ -86,18 +86,17 @@ test.describe("Vendedor y administración", () => {
     await page.getByRole("button", { name: "Continuar" }).click();
     await expect(page).toHaveURL(/paso=4/);
 
-    // Teaser: formato y contenido verificados en el servidor
+    // Teaser y NDA se cargan al elegir el archivo; formato y contenido verificados en el servidor
+    await expect(page.getByText(/Falta cargar el NDA de la empresa/)).toBeVisible();
     const teaserForm = page.locator("form").filter({ has: page.getByRole("button", { name: "Cargar teaser" }) });
     await teaserForm.locator('input[type="file"]').setInputFiles(fake);
-    await teaserForm.getByRole("button", { name: "Cargar teaser" }).click();
     await expect(page.getByText("El contenido del archivo no corresponde a su extensión.")).toBeVisible();
     await teaserForm.locator('input[type="file"]').setInputFiles(pdf);
-    await teaserForm.getByRole("button", { name: "Cargar teaser" }).click();
     await expect(page.getByText(/se mostrará como «Teaser RW-/)).toBeVisible();
     const ndaForm = page.locator("form").filter({ has: page.getByRole("button", { name: "Cargar NDA" }) });
     await ndaForm.locator('input[type="file"]').setInputFiles(pdf);
-    await ndaForm.getByRole("button", { name: "Cargar NDA" }).click();
     await expect(page.getByText(/se mostrará como «NDA RW-/)).toBeVisible();
+    await expect(page.getByText(/Falta cargar el NDA de la empresa/)).toHaveCount(0);
     const docForm = page.locator("form").filter({ has: page.getByRole("button", { name: "Cargar documento" }) });
     await docForm.locator('input[type="file"]').setInputFiles(heic);
     await expect(page.getByText(/Formato no admitido \(\.heic\)/)).toBeVisible();
