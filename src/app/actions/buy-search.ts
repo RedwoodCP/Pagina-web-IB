@@ -3,9 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireMember } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { setFlash } from "@/lib/flash";
+import { adminIds, notify } from "@/lib/notify";
 import { invalid, num, str, type ActionState } from "@/lib/action";
 import { CURRENCIES, EMPLOYEE_RANGES, REGIONS, SECTORS } from "@/lib/domain";
 import { INTL_OPS } from "@/lib/buy-search";
@@ -23,9 +24,9 @@ async function nextCode(): Promise<string> {
 const pick = (fd: FormData, k: string, allowed: readonly string[]) => fd.getAll(k).map(String).filter((v) => allowed.includes(v));
 
 /** Lee y valida el formulario. Devuelve los datos o los errores por campo. */
-function parse(fd: FormData) {
+function parse(fd: FormData, clientOverride?: string) {
   const f: Record<string, string> = {};
-  const clientName = str(fd, "clientName", 160);
+  const clientName = clientOverride ?? str(fd, "clientName", 160);
   const currency = str(fd, "currency", 3);
   const salesMin = num(fd, "salesMin"), salesMax = num(fd, "salesMax");
   const marginMin = num(fd, "marginMin"), marginMax = num(fd, "marginMax");
@@ -111,4 +112,64 @@ export async function deleteBuySearchAction(id: string): Promise<R> {
   await audit(admin.id, "buysearch.deleted", "buysearch", id, { meta: { code: b.code } });
   await setFlash(`Búsqueda ${b.code} eliminada.`);
   redirect("/admin/busquedas");
+}
+
+// ---------------------------------------------------------------------------
+// Búsquedas registradas por el propio comprador desde su perfil
+
+async function buyer() {
+  const user = await requireMember();
+  if (user.isAdmin || !user.canBuy) redirect("/sin-permiso");
+  return user;
+}
+
+async function ownSearch(id: string, userId: string) {
+  const b = await db.buySearch.findUnique({ where: { id } });
+  return b && b.ownerId === userId ? b : null;
+}
+
+export async function createMyBuySearchAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await buyer();
+  if ((await db.buySearch.count({ where: { ownerId: user.id, status: { not: "cerrada" } } })) >= 10)
+    return { error: "Puede tener hasta 10 búsquedas abiertas. Cierre alguna para registrar otra." };
+  const { f, data } = parse(fd, user.organization?.name ?? user.name);
+  if (Object.keys(f).length) return invalid(f, fd);
+  const b = await db.buySearch.create({ data: { ...data, code: await nextCode(), createdById: user.id, ownerId: user.id } });
+  await audit(user.id, "buysearch.created", "buysearch", b.id, { meta: { code: b.code, byBuyer: true } });
+  await notify(await adminIds(), `${user.name} registró la búsqueda de compra ${b.code}.`, `/admin/busquedas/${b.id}`);
+  await setFlash(`Búsqueda ${b.code} registrada. Le avisaremos cuando se publique una oportunidad que coincida.`);
+  redirect(`/busquedas/${b.id}`);
+}
+
+export async function updateMyBuySearchAction(id: string, _: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await buyer();
+  const b = await ownSearch(id, user.id);
+  if (!b) return { error: "La búsqueda no existe." };
+  const { f, data } = parse(fd, b.clientName);
+  if (Object.keys(f).length) return invalid(f, fd);
+  await db.buySearch.update({ where: { id }, data });
+  await audit(user.id, "buysearch.updated", "buysearch", id, { meta: { code: b.code, byBuyer: true } });
+  await setFlash("Criterios actualizados.");
+  redirect(`/busquedas/${id}`);
+}
+
+export async function setMyBuySearchStatusAction(id: string, status: "activa" | "pausada" | "cerrada"): Promise<R> {
+  const user = await buyer();
+  const b = await ownSearch(id, user.id);
+  if (!b) return { error: "La búsqueda no existe." };
+  await db.buySearch.update({ where: { id }, data: { status } });
+  await audit(user.id, "buysearch.status", "buysearch", id, { meta: { code: b.code, status, byBuyer: true } });
+  revalidatePath(`/busquedas/${id}`);
+  revalidatePath("/busquedas");
+  return { message: status === "activa" ? `${b.code} está activa.` : status === "pausada" ? `${b.code} quedó en pausa: no recibirá avisos.` : `${b.code} se cerró.` };
+}
+
+export async function deleteMyBuySearchAction(id: string): Promise<R> {
+  const user = await buyer();
+  const b = await ownSearch(id, user.id);
+  if (!b) return { error: "La búsqueda no existe." };
+  await db.buySearch.delete({ where: { id } });
+  await audit(user.id, "buysearch.deleted", "buysearch", id, { meta: { code: b.code, byBuyer: true } });
+  await setFlash(`Búsqueda ${b.code} eliminada.`);
+  redirect("/busquedas");
 }

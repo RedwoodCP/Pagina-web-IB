@@ -49,6 +49,40 @@ test.describe("Búsquedas de compra (administración)", () => {
     await expect(page).toHaveURL(/\/admin\/busquedas$/);
   });
 
+  test("el comprador registra su propia búsqueda; es privada", async ({ page, browser }) => {
+    await login(page, U.mariana);
+    await page.goto("/panel");
+    await page.getByRole("link", { name: "Registrar lo que busco" }).click();
+    await expect(page.getByRole("textbox", { name: /^Cliente o comprador/ })).toHaveCount(0);
+    await page.getByRole("button", { name: "Registrar búsqueda" }).click();
+    await expect(page.getByText("Seleccione al menos una industria.")).toBeVisible();
+    await page.getByLabel("Mínimo").first().fill("5");
+    await page.getByLabel("Máximo").first().fill("20");
+    await page.getByLabel("Mínimo").nth(1).fill("15");
+    await page.locator("label.chip", { hasText: "Centro" }).click();
+    await page.locator("label.chip", { hasText: "Salud" }).click();
+    await page.getByRole("button", { name: "Registrar búsqueda" }).click();
+    await expect(page).toHaveURL(/\/busquedas\/[a-z0-9]{20,}$/);
+    await expect(page.getByText(/Le avisaremos cuando se publique/)).toBeVisible();
+    const url = page.url();
+
+    // Otro comprador no puede verla
+    const c = await browser.newContext();
+    const p2 = await c.newPage();
+    await login(p2, U.pablo);
+    await p2.goto(url);
+    await expect(p2.getByText("No encontramos esta página")).toBeVisible();
+    await c.close();
+
+    // Administración la ve, marcada como del comprador
+    const c2 = await browser.newContext();
+    const a = await c2.newPage();
+    await login(a, U.admin);
+    await a.goto("/admin/busquedas");
+    await expect(a.locator(".row", { hasText: "Grupo Ferrán" }).getByText(/Registrada por el comprador/)).toBeVisible();
+    await c2.close();
+  });
+
   test("al publicar una oportunidad que coincide se avisa a administración", async ({ page }) => {
     await login(page, U.admin);
     await page.goto("/admin/busquedas/nueva");
@@ -67,11 +101,18 @@ test.describe("Búsquedas de compra (administración)", () => {
     await page.locator(".row", { hasText: "RW-1730" }).getByRole("link", { name: "Revisar" }).click();
     await page.getByRole("button", { name: "Aprobar y publicar" }).click();
     await confirmDialog(page, "Aprobar y publicar");
-    await expect(page.getByText(new RegExp(`Coincide con la búsqueda ${code}`))).toBeVisible();
+    await expect(page.getByText(new RegExp(`Coincide con las? búsquedas? .*${code}`))).toBeVisible();
     await page.goto("/notificaciones");
     await expect(page.getByText(`RW-1730 coincide con la búsqueda de compra ${code} (Grupo Salud Prueba).`)).toBeVisible();
     await page.goto("/admin/correos");
     await expect(page.getByText("Coincidencia para una búsqueda de compra: RW-1730").first()).toBeVisible();
+    await expect(page.getByText(/Nueva oportunidad para su búsqueda BC-/).first()).toBeVisible();
+
+    // El comprador con una búsqueda que coincide también recibe el aviso
+    await page.context().clearCookies();
+    await login(page, U.mariana);
+    await page.goto("/notificaciones");
+    await expect(page.getByText(/Nueva oportunidad para su búsqueda BC-\d{4}: RW-1730/)).toBeVisible();
   });
 
   test("un administrador que también vende cambia a la vista de compra y venta", async ({ page }) => {

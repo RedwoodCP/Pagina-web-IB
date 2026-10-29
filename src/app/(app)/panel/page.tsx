@@ -50,7 +50,10 @@ export default async function Panel() {
           <h1 className="h1-lg" style={{ margin: "12px 0 8px" }}>{hello}, {user.name.split(" ")[0]}.</h1>
           <p className="lead">Estas son sus oportunidades y procesos de confidencialidad en curso.</p>
         </div>
-        <Link prefetch={false} href="/oportunidades" className="btn btn-lg"><Icon name="search" />Explorar catálogo</Link>
+        <div className="wrap-gap">
+          <Link prefetch={false} href="/busquedas/nueva" className="btn btn-secondary btn-lg"><Icon name="travel_explore" />Registrar lo que busco</Link>
+          <Link prefetch={false} href="/oportunidades" className="btn btn-lg"><Icon name="search" />Explorar catálogo</Link>
+        </div>
       </div>
 
       <div className="kpis">

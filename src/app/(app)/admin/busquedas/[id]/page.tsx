@@ -9,7 +9,7 @@ import { BUY_SEARCH_BADGE, INTL_OPS, criteria, marginOf, matchListing, rangeText
 import { Badge, DemoFlag, Empty, Icon } from "@/components/ui";
 import { ActionButton } from "@/components/confirm";
 import { deleteBuySearchAction, setBuySearchStatusAction, updateBuySearchAction } from "@/app/actions/buy-search";
-import { BuySearchForm } from "../search-form";
+import { BuySearchForm } from "@/components/buy-search-form";
 
 export const metadata: Metadata = { title: "Búsqueda de compra" };
 
@@ -46,7 +46,7 @@ function ListingRow({ l, m }: { l: Listing; m: ReturnType<typeof matchListing> }
 
 export default async function Busqueda({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const b = await db.buySearch.findUnique({ where: { id }, include: { createdBy: { select: { name: true } } } });
+  const b = await db.buySearch.findUnique({ where: { id }, include: { createdBy: { select: { name: true } }, owner: { select: { name: true, email: true } } } });
   if (!b) notFound();
   const c = criteria(b);
   const listings = await db.listing.findMany({ where: { status: "publicada", ...(env.showDemo ? {} : { isDemo: false }) }, orderBy: { publishedAt: "desc" } });
@@ -67,7 +67,7 @@ export default async function Busqueda({ params }: { params: Promise<{ id: strin
         <div>
           <div className="hstack gap-8 small fw7"><Link prefetch={false} href="/admin/busquedas">Búsquedas de compra</Link> / {b.code}</div>
           <h2 className="h2 mt-8">{b.clientName}</h2>
-          <div className="small c-lead mt-4">Registrada {fmtDate(b.createdAt)}{b.createdBy ? ` por ${b.createdBy.name}` : ""} · Actualizada {fmtDate(b.updatedAt)}</div>
+          <div className="small c-lead mt-4">{b.owner ? `Registrada por el comprador ${b.owner.name} (${b.owner.email}) el ${fmtDate(b.createdAt)}` : `Registrada ${fmtDate(b.createdAt)}${b.createdBy ? ` por ${b.createdBy.name}` : ""}`} · Actualizada {fmtDate(b.updatedAt)}</div>
         </div>
         <div className="wrap-gap">
           <Badge b={BUY_SEARCH_BADGE[b.status]!} />

@@ -55,6 +55,7 @@ const CRUMBS: [RegExp, string][] = [
   [/^\/venta\/[^/]+\/editar/, "Venta · Editar publicación"],
   [/^\/venta\/[^/]+/, "Venta · Seguimiento"],
   [/^\/venta/, "Venta · Mis publicaciones"],
+  [/^\/busquedas/, "Compra · Mis búsquedas"],
   [/^\/perfil/, "Cuenta · Mi perfil"],
   [/^\/notificaciones/, "Cuenta · Notificaciones"],
   [/^\/admin\/solicitudes/, "Administración · Solicitudes de membresía"],

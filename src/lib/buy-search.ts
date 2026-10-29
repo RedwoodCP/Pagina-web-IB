@@ -83,3 +83,30 @@ export function rangeText(min: number | null, max: number | null, unit: string):
   if (max != null) return `Hasta ${n(max)}${unit}`;
   return "—";
 }
+
+/**
+ * Coincidencia vista por el comprador: usa solo lo que ese comprador puede ver de la oportunidad
+ * (lo que llega en el catálogo). Una cifra confidencial nunca se compara, para no revelar su rango.
+ * Los criterios opcionales se basan en datos confidenciales; solo se evalúa el número de empleados.
+ */
+export function matchPublic(
+  b: BuySearch,
+  o: { sector: string | null; region: string | null; currency: string; sales: number | null; margin: number | null; employees: string | null },
+) {
+  const c = criteria(b);
+  const sameCur = o.currency === b.currency;
+  const required: Check[] = [
+    { label: "Industria", result: o.sector ? (c.sectors.includes(o.sector) ? "si" : "no") : "sin_dato", detail: o.sector ?? "—" },
+    { label: "Región", result: o.region ? (c.regions.includes(o.region) ? "si" : "no") : "sin_dato", detail: o.region ?? "—" },
+    {
+      label: "Ventas",
+      result: o.sales == null ? "sin_dato" : !sameCur ? "no" : inside(o.sales, b.salesMin, b.salesMax) ? "si" : "no",
+      detail: o.sales == null ? "Confidencial" : !sameCur ? `Cifras en ${o.currency}` : `${o.sales} M`,
+    },
+    { label: "Margen EBITDA", result: o.margin == null ? "sin_dato" : inside(o.margin, b.marginMin, b.marginMax) ? "si" : "no", detail: o.margin == null ? "Confidencial" : `${o.margin.toFixed(1)}%` },
+  ];
+  const optional: Check[] = c.employees.length
+    ? [{ label: "Empleados", result: !o.employees ? "sin_dato" : c.employees.includes(o.employees) ? "si" : "no", detail: o.employees ?? "—" }]
+    : [];
+  return { ok: required.every((r) => r.result === "si"), required, optional, score: optional.filter((x) => x.result === "si").length };
+}

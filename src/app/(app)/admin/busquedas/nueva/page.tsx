@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { createBuySearchAction } from "@/app/actions/buy-search";
-import { BuySearchForm } from "../search-form";
+import { BuySearchForm } from "@/components/buy-search-form";
 
 export const metadata: Metadata = { title: "Nueva búsqueda de compra" };
 

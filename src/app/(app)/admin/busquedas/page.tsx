@@ -38,7 +38,7 @@ export default async function Busquedas({ searchParams }: { searchParams: Promis
                   <div className="small c-lead mt-4">
                     {c.sectors.join(", ")} · {c.regions.join(", ")} · Ventas {rangeText(b.salesMin, b.salesMax, ` M ${b.currency}`)} · Margen {rangeText(b.marginMin, b.marginMax, "%")}
                   </div>
-                  <div className="small c-lead">Actualizada {fmtDate(b.updatedAt)}</div>
+                  <div className="small c-lead">{b.ownerId ? "Registrada por el comprador · " : ""}Actualizada {fmtDate(b.updatedAt)}</div>
                 </div>
                 <span className="small fw6">{matches} {matches === 1 ? "coincidencia" : "coincidencias"}</span>
                 <Badge b={BUY_SEARCH_BADGE[b.status]!} />

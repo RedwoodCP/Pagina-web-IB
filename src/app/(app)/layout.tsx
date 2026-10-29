@@ -55,6 +55,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         items: [
           { href: "/panel", label: "Panel", icon: "space_dashboard" },
           { href: "/oportunidades", label: "Catálogo", icon: "search" },
+          { href: "/busquedas", label: "Mis búsquedas", icon: "travel_explore" },
         ],
       });
     if (seller)

@@ -8,13 +8,16 @@ import { FieldErrorFor } from "@/components/field-error";
 
 const s = (v: number | null | undefined) => (v == null ? "" : String(v));
 
-/** Formulario de criterios de una búsqueda de compra (alta y edición). */
-export function BuySearchForm({ action, b }: { action: (p: ActionState, fd: FormData) => Promise<ActionState>; b?: BuySearch }) {
+/**
+ * Formulario de criterios de una búsqueda de compra (alta y edición).
+ * buyer: lo usa el propio comprador (sin campo de cliente; vuelve a sus búsquedas).
+ */
+export function BuySearchForm({ action, b, buyer }: { action: (p: ActionState, fd: FormData) => Promise<ActionState>; b?: BuySearch; buyer?: boolean }) {
   const c = b ? criteria(b) : { regions: [], sectors: [], employees: [] };
   return (
     <ActionForm action={action}>
       <div className="grid-2">
-        <Field name="clientName" icon="lock" label="Cliente o comprador" required maxLength={160} defaultValue={b?.clientName ?? ""} hint="Para quién es la búsqueda. Solo lo ve administración." />
+        {!buyer && <Field name="clientName" icon="lock" label="Cliente o comprador" required maxLength={160} defaultValue={b?.clientName ?? ""} hint="Para quién es la búsqueda. Solo lo ve administración." />}
         <Select name="currency" label="Moneda de las cifras" required options={[...CURRENCIES]} defaultValue={b?.currency ?? "USD"} hint="Solo se cruzan oportunidades publicadas en esta moneda." />
       </div>
 
@@ -44,7 +47,8 @@ export function BuySearchForm({ action, b }: { action: (p: ActionState, fd: Form
         <ChipGroup name="sectors" label="Industria" required multiple options={[...SECTORS]} defaultValue={c.sectors} />
       </div>
 
-      <div className="label-caps mt-32 mb-16">Criterios opcionales</div>
+      <div className="label-caps mt-32 mb-8">Criterios opcionales</div>
+      {buyer && <p className="small c-lead mb-16">Deuda, operación en otros países y concentración de clientes son datos confidenciales de cada empresa: nuestro equipo los revisa por usted y le contacta si encajan.</p>}
       <div className="grid-3">
         <Field name="debtEbitdaMax" label="Deuda / EBITDA máxima (veces)" optional inputMode="decimal" defaultValue={s(b?.debtEbitdaMax)} placeholder="Ej.: 2.5" />
         <Select name="intlOps" label="Operación en otros países" options={Object.entries(INTL_OPS)} defaultValue={b?.intlOps ?? "indistinto"} />
@@ -54,11 +58,11 @@ export function BuySearchForm({ action, b }: { action: (p: ActionState, fd: Form
         <ChipGroup name="employees" label="Número de empleados" multiple options={[...EMPLOYEE_RANGES]} defaultValue={c.employees} hint="Opcional. Deje sin marcar para no filtrar." />
       </div>
       <div className="mt-24">
-        <TextArea name="notes" label="Notas internas" optional rows={3} maxLength={2000} defaultValue={b?.notes ?? ""} />
+        <TextArea name="notes" label={buyer ? "Comentarios para nuestro equipo" : "Notas internas"} optional rows={3} maxLength={2000} defaultValue={b?.notes ?? ""} />
       </div>
 
       <div className="form-actions">
-        <Link prefetch={false} href="/admin/busquedas" className="btn btn-secondary btn-lg">{b ? "Volver" : "Cancelar"}</Link>
+        <Link prefetch={false} href={buyer ? "/busquedas" : "/admin/busquedas"} className="btn btn-secondary btn-lg">{b ? "Volver" : "Cancelar"}</Link>
         <Submit className="btn btn-lg" icon="save" pendingText="Guardando…">{b ? "Guardar criterios" : "Registrar búsqueda"}</Submit>
       </div>
     </ActionForm>
