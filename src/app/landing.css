@@ -1,0 +1,189 @@
+/* ==========================================================================
+   Landing pública: puesta en escena con profundidad y movimiento.
+   Solo transform y opacity; scroll nativo. Sin JS (o con movimiento reducido)
+   todo el contenido es visible y funcional. Los estados ocultos dependen de .ld-js.
+   ========================================================================== */
+
+.ld {
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --nav-h: 92px;
+  overflow-x: clip;
+}
+
+@keyframes ld-rise { from { opacity: 0; translate: 0 18px; } to { opacity: 1; translate: 0 0; } }
+@keyframes ld-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ld-visual {
+  from { opacity: 0; transform: translateY(48px) rotateX(16deg) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- Navegación ---------- */
+.ld-nav {
+  position: fixed; inset: 0 0 auto; z-index: 40; color: var(--white);
+  border-bottom: 1px solid transparent;
+  transition: background-color 0.4s var(--ease), border-color 0.4s var(--ease), backdrop-filter 0.4s var(--ease);
+}
+.ld-nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: var(--nav-h); transition: height 0.4s var(--ease); }
+.ld-nav.is-scrolled { background: rgba(26, 26, 26, 0.86); backdrop-filter: blur(12px); border-bottom-color: rgba(255, 255, 255, 0.08); }
+.ld-nav.is-scrolled .ld-nav-inner { height: 64px; }
+.ld-nav-links { gap: 24px; font-size: 14px; }
+@media (min-width: 760px) { .ld-nav-links { display: flex; } }
+.ld-nav-links a { position: relative; color: var(--white); text-decoration: none; padding: 6px 0; }
+.ld-nav-links a::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: currentColor;
+  transform: scaleX(0); transform-origin: left; transition: transform 0.35s var(--ease-out);
+}
+.ld-nav-links a:hover::after, .ld-nav-links a:focus-visible::after { transform: scaleX(1); }
+
+/* ---------- Botones: respuesta sutil ---------- */
+.ld .btn { transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out); }
+@media (hover: hover) {
+  .ld .btn:hover { transform: translateY(-1px); box-shadow: 0 12px 24px -14px rgba(0, 0, 0, 0.5); }
+}
+.ld .btn:active { transform: translateY(0) scale(0.98); box-shadow: none; }
+
+/* ---------- Primera pantalla ---------- */
+.ld-hero { --mx: 0; --my: 0; overflow: hidden; display: flex; align-items: center; }
+@media (min-width: 900px) { .ld-hero { min-height: min(100svh, 960px); } }
+.ld-hero-grid {
+  width: 100%; display: flex; flex-wrap: wrap; gap: 56px; align-items: center;
+  padding-top: calc(var(--nav-h) + clamp(32px, 6vw, 72px)); padding-bottom: clamp(56px, 8vw, 96px);
+}
+.ld-hero-copy { flex: 1 1 560px; min-width: 0; position: relative; z-index: 2; }
+
+/* Entrada coordinada: bloques completos, nunca letra por letra. */
+.ld-in { animation: ld-rise 0.9s var(--ease-out) both; animation-delay: calc(0.1s + var(--i, 0) * 0.11s); }
+.ld-in-visual { animation: ld-visual 1.3s var(--ease-out) 0.4s both; }
+.ld-hero > .ld-layers, .ld-layers { position: absolute; inset: 0; pointer-events: none; animation: ld-fade 1.6s var(--ease) 0.1s both; }
+
+/* Cada capa se desplaza según el cursor en proporción a su profundidad (--d). */
+.ld-layer {
+  transform: translate3d(calc(var(--mx) * var(--d, 0) * 30px), calc(var(--my) * var(--d, 0) * 22px), 0);
+}
+.ld-plane { position: absolute; border: 1px solid rgba(255, 255, 255, 0.14); background: linear-gradient(140deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 55%); }
+.ld-plane-a { right: -6%; top: 10%; width: 52%; height: 70%; rotate: -7deg; }
+.ld-plane-b { right: 10%; top: 26%; width: 34%; height: 52%; rotate: 5deg; border-color: rgba(255, 255, 255, 0.1); }
+.ld-iso { position: absolute; left: -4%; bottom: -10%; width: min(560px, 60vw); height: auto; opacity: 0.06; }
+
+.ld-stage-hero { flex: 0 1 400px; min-width: 260px; position: relative; }
+.ld-tilt-wrap { perspective: 900px; }
+.ld-glass {
+  background: rgba(26, 26, 26, 0.6); border: 1px solid rgba(255, 255, 255, 0.18); padding: 24px;
+  backdrop-filter: blur(10px); color: var(--white);
+}
+.ld-hero-card {
+  transform: rotateY(calc(var(--mx) * 7deg)) rotateX(calc(var(--my) * -6deg));
+  box-shadow: 0 40px 80px -36px rgba(0, 0, 0, 0.65);
+}
+.ld-card-top { display: flex; justify-content: space-between; gap: 12px; font-size: 11px; letter-spacing: 0.16em; color: #aeaeae; font-weight: 600; }
+.ld-card-label { font-size: 11px; letter-spacing: 0.14em; color: #aeaeae; }
+.ld-card-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; border-top: 1px solid rgba(255, 255, 255, 0.18); padding-top: 16px; }
+
+.ld-chip {
+  position: absolute; z-index: 3; display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px;
+  background: rgba(255, 255, 255, 0.94); color: var(--ink); font-size: 13px; font-weight: 600; border-radius: 2px;
+  box-shadow: 0 18px 36px -18px rgba(0, 0, 0, 0.55); white-space: nowrap; pointer-events: none;
+  animation: ld-rise 0.8s var(--ease-out) both;
+}
+.ld-chip-a { top: -18px; left: -24px; animation-delay: 1s; }
+.ld-chip-b { bottom: -20px; right: -12px; animation-delay: 1.15s; }
+@media (max-width: 759px) {
+  .ld-chip-a { left: 8px; }
+  .ld-chip-b { right: 8px; }
+}
+
+/* ---------- Revelado por scroll (solo con JS) ---------- */
+.ld-js [data-reveal] {
+  transition: opacity 0.8s var(--ease-out) calc(var(--i, 0) * 80ms), translate 0.8s var(--ease-out) calc(var(--i, 0) * 80ms);
+}
+.ld-js [data-reveal]:not(.is-in) { opacity: 0; translate: 0 20px; }
+
+/* ---------- Cómo funciona ---------- */
+.ld-how { position: relative; padding: clamp(56px, 8vw, 96px) 0; }
+.ld-how-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; align-items: center; width: 100%; }
+.ld-steps { list-style: none; margin: 36px 0 0; padding: 0; display: grid; gap: 0; }
+.ld-step-btn {
+  width: 100%; display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 16px; align-items: start; text-align: left;
+  background: none; border: 0; border-top: 1px solid var(--ink); padding: 20px 0; color: inherit; font: inherit; cursor: default;
+}
+.ld-step-n { font-size: 34px; font-weight: 300; line-height: 1; }
+.ld-step-t { display: block; font-size: 18px; font-weight: 600; }
+.ld-step-d { display: block; margin-top: 6px; font-size: 15px; line-height: 1.55; color: var(--lead); }
+.ld-how-stage { display: none; }
+
+@media (min-width: 1000px) {
+  .ld-how-grid { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 72px; }
+  .ld-how-stage { display: block; position: relative; height: 480px; perspective: 1600px; }
+  .ld-step-btn { cursor: pointer; }
+
+  /* Secuencia fija breve: solo con JS y sin movimiento reducido. El scroll sigue siendo nativo. */
+  .ld-js:not(.ld-reduce) .ld-how { height: 250vh; padding: 0; }
+  .ld-js:not(.ld-reduce) .ld-how-sticky { position: sticky; top: 0; height: 100vh; display: flex; align-items: center; padding-top: 48px; }
+  .ld-js:not(.ld-reduce) .ld-step-btn { transition: opacity 0.5s var(--ease); opacity: 0.38; border-top-color: rgba(26, 26, 26, 0.25); }
+  .ld-js:not(.ld-reduce) .ld-step-btn:hover { opacity: 0.7; }
+  .ld-js:not(.ld-reduce) [data-active] .ld-step-btn { opacity: 1; border-top-color: var(--ink); }
+}
+
+.ld-scene { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateX(4deg) rotateY(-8deg); }
+/* --k = posición respecto del paso activo: 0 al frente; negativas atrás; positivas aún no aparecen. */
+.ld-sc {
+  position: absolute; left: 50%; top: 50%; width: 380px; margin: -110px 0 0 -150px; min-height: 240px; padding: 24px;
+  transform: translate3d(calc(min(var(--k), 0) * 64px), calc(min(var(--k), 0) * 52px + max(var(--k), 0) * 80px), calc(min(var(--k), 0) * 90px));
+  opacity: calc(clamp(0, 1 + var(--k) * 0.28, 1) * (1 - clamp(0, var(--k), 1)));
+  transition: transform 0.9s var(--ease-out), opacity 0.6s var(--ease);
+  box-shadow: 0 44px 80px -40px rgba(26, 26, 26, 0.55);
+}
+.ld-dark { background: linear-gradient(160deg, #2f2f2f, #1a1a1a 70%); color: var(--white); border: 1px solid rgba(255, 255, 255, 0.12); }
+.ld-paper { background: var(--white); color: var(--ink); border: 1px solid var(--line-2); }
+.ld-ink { color: var(--ink); }
+.ld-paper .ld-card-top { color: var(--lead); }
+.ld-sc-title { font-size: 20px; line-height: 1.3; margin: 18px 0 18px; }
+.ld-sc-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid rgba(255, 255, 255, 0.14); font-size: 14px; color: #f0f0f0; }
+.ld-paper .ld-sc-row { border-top-color: var(--line); color: var(--ink); }
+.ld-lines { display: grid; gap: 9px; margin-bottom: 18px; }
+.ld-lines i { display: block; height: 6px; width: 100%; background: var(--fog); }
+
+/* ---------- Confidencialidad: zona tranquila ---------- */
+.ld-principle { display: flex; gap: 20px; padding: 22px 0; border-bottom: 1px solid rgba(26, 26, 26, 0.1); }
+
+/* ---------- Para quién ---------- */
+.ld-audiences { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; perspective: 1400px; }
+.ld-aud { --tx: 0; --ty: 0; transform: rotateX(calc(var(--ty) * -3deg)) rotateY(calc(var(--tx) * 4deg)); }
+.ld-js .ld-aud {
+  transition: opacity 0.8s var(--ease-out) calc(var(--i, 0) * 90ms), translate 0.8s var(--ease-out) calc(var(--i, 0) * 90ms),
+    transform 0.45s var(--ease-out), box-shadow 0.45s var(--ease-out);
+}
+@media (hover: hover) {
+  .ld-aud:hover {
+    transform: translateY(-6px) rotateX(calc(var(--ty) * -3deg)) rotateY(calc(var(--tx) * 4deg));
+    box-shadow: 0 28px 50px -30px rgba(26, 26, 26, 0.45);
+  }
+}
+
+/* ---------- Cierre ---------- */
+.ld-cta { position: relative; overflow: hidden; background: var(--ink); color: var(--white); }
+.ld-cta-bg {
+  position: absolute; inset: 0; background: url("/brand/degradado.jpg") center / cover no-repeat; opacity: 0.32;
+}
+.ld-cta-bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(26, 26, 26, 0.85), rgba(26, 26, 26, 0.45)); }
+/* La sección no se desplaza: entran su fondo (escala) y su contenido. */
+.ld-js .ld-cta[data-reveal]:not(.is-in) { opacity: 1; translate: none; }
+.ld-js .ld-cta .ld-cta-bg { transform: scale(1.08); transition: transform 1.6s var(--ease-out); }
+.ld-js .ld-cta.is-in .ld-cta-bg { transform: scale(1); }
+.ld-js .ld-cta .wrap > * { transition: opacity 0.9s var(--ease-out), translate 0.9s var(--ease-out); }
+.ld-js .ld-cta .wrap > :nth-child(2) { transition-delay: 0.12s; }
+.ld-js .ld-cta:not(.is-in) .wrap > * { opacity: 0; translate: 0 16px; }
+
+/* ---------- Movimiento reducido: sin animaciones ni transformaciones decorativas ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .ld *, .ld *::before, .ld *::after { animation: none !important; transition: none !important; }
+  .ld [data-reveal], .ld .ld-cta .wrap > * { opacity: 1 !important; translate: none !important; }
+  .ld .ld-layer, .ld .ld-hero-card, .ld .ld-aud, .ld .ld-cta-bg { transform: none !important; }
+}
+
+/* Móvil: sin planos detrás del texto (legibilidad) y áreas táctiles amplias en el pie. */
+@media (max-width: 899px) {
+  .ld-plane { display: none; }
+}
+.ld-footer-links a { display: inline-flex; align-items: center; min-height: 44px; }

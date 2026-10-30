@@ -34,7 +34,7 @@ Invitaciones de prueba: `/invitacion/demo-invitacion-vigente`, `/invitacion/demo
 ## Pruebas
 
 ```bash
-npx playwright test           # 23 pruebas E2E; usan su propia base (prisma/test.db) y storage-test/
+npx playwright test           # 26 pruebas E2E; usan su propia base (prisma/test.db) y storage-test/
 npm run typecheck
 ```
 
