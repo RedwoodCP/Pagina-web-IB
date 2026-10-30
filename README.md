@@ -89,7 +89,8 @@ design/                             prototipo, guía y recursos de marca de refe
 | Vista de trabajo: un administrador que también compra o vende alterna entre «Administración» y «Compra y venta» (barra lateral o Mi perfil). En compra y venta actúa como cualquier miembro, sin permisos de administración. | Funciona |
 | **Firma electrónica del NDA** | **Requiere proveedor.** Hoy se registra una «aceptación» (nombre, cargo, fecha, IP, navegador, versión y huella del texto) y la interfaz dice expresamente que no es una firma electrónica avanzada. Adaptador preparado en `src/lib/signature.ts` (`SIGNATURE_PROVIDER`). |
 | **NDA** | Cada vendedor carga el PDF del NDA de su empresa (obligatorio para enviar a revisión). El comprador lo lee y descarga en la plataforma; al aceptarlo se guarda la huella sha256 de ese archivo. Las oportunidades sin NDA propio usan el texto de ejemplo. |
-| **Aviso de privacidad y términos** | **Pendientes del área jurídica.** |
+| **Aviso de privacidad** | Publicado: Privacy Policy de Redwood Capital Partners (vigente desde el 16 de julio de 2025), texto proporcionado por Redwood, en `src/components/privacy-policy.tsx`. |
+| **Términos de uso** | **Pendientes del área jurídica.** |
 | **Correo transaccional** | Conectado con **Resend** (`EMAIL_PROVIDER=resend`, `EMAIL_API_KEY`, `EMAIL_FROM` con dominio verificado). Sin proveedor, los correos quedan en Admin › Correos y el enlace de invitación se muestra al administrador. Cada envío y su estado quedan registrados. |
 | Antivirus de archivos, verificación en dos pasos, calendario y videollamada | No incluidos; señalados en Admin › Integraciones. |
 | Almacenamiento de archivos | Disco local en desarrollo; Supabase Storage (bucket privado) en Vercel. |

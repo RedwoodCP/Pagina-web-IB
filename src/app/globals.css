@@ -454,3 +454,6 @@ dialog.modal::backdrop { background: rgba(26, 26, 26, 0.45); animation: fade 0.1
 .view-switch { padding: 16px 12px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
 .view-switch .nav-item { color: var(--white); border: 1px solid rgba(255, 255, 255, 0.24); }
 .view-switch .nav-item:hover { background: var(--graphite); }
+.legal-body p { margin: 12px 0 0; font-size: 16px; line-height: 1.65; color: var(--carbon); }
+.legal-body ul { margin: 8px 0 0; padding-left: 22px; font-size: 16px; line-height: 1.65; }
+.legal-body li { margin-top: 4px; }
