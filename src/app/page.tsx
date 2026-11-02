@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Brand } from "@/components/brand";
 import { Icon } from "@/components/ui";
 import { LandingMotion } from "@/components/landing-motion";
+import { DealTunnel } from "@/components/deal-tunnel";
 import { getCurrentUser } from "@/lib/auth";
 import "./landing.css";
 
@@ -122,22 +123,9 @@ export default async function Landing() {
         </div>
       </section>
 
-      {/* ---------- Túnel: transición en profundidad hacia «Cómo funciona» (decorativo) ---------- */}
+      {/* ---------- Túnel: el recorrido de una operación, escena por escena (decorativo) ---------- */}
       <section className="ld-tunnel on-dark" data-scrub aria-hidden="true">
-        <div className="ld-tunnel-sticky">
-          {Array.from({ length: 7 }, (_, i) => {
-            const label = i >= 1 && i <= 5 ? PRINCIPLES[i - 1]![1] : null;
-            return (
-              <div key={i} className="ld-frame" style={{ "--i": i } as React.CSSProperties}>
-                {label && <span className="ld-frame-label"><span className="num">0{i}</span> {label}</span>}
-              </div>
-            );
-          })}
-          <div className="ld-frame ld-frame-end" style={{ "--i": 7 } as React.CSSProperties}>
-            <img src="/brand/rw-isotipo-blanco.png" alt="" />
-            <span>RED PRIVADA DE TRANSACCIONES</span>
-          </div>
-        </div>
+        <DealTunnel />
       </section>
 
       {/* ---------- Cómo funciona: secuencia breve ---------- */}

@@ -44,11 +44,12 @@
 .ld .btn:active { transform: translateY(0) scale(0.98); box-shadow: none; }
 
 /* ---------- Primera pantalla ---------- */
-.ld-hero { --mx: 0; --my: 0; overflow: hidden; display: flex; align-items: center; }
+/* Alineada arriba (no centrada): al cargar la tipografía, el bloque no se recentra (evita saltos de diseño). */
+.ld-hero { --mx: 0; --my: 0; overflow: hidden; display: flex; align-items: flex-start; }
 @media (min-width: 900px) { .ld-hero { min-height: min(100svh, 960px); } }
 .ld-hero-grid {
   width: 100%; display: flex; flex-wrap: wrap; gap: 56px; align-items: center;
-  padding-top: calc(var(--nav-h) + clamp(32px, 6vw, 72px)); padding-bottom: clamp(56px, 8vw, 96px);
+  padding-top: calc(var(--nav-h) + clamp(32px, 11vh, 132px)); padding-bottom: clamp(56px, 8vw, 96px);
 }
 .ld-hero-copy { flex: 1 1 560px; min-width: 0; position: relative; z-index: 2; }
 
@@ -181,11 +182,15 @@
   position: relative; height: 100%; overflow: hidden; perspective: 700px; perspective-origin: 50% 50%;
   background: radial-gradient(ellipse at 50% 50%, #2f2f2f 0%, #1a1a1a 62%);
 }
-.ld-js:not(.ld-reduce) .ld-tunnel { height: 230vh; overflow: visible; }
+.ld-js:not(.ld-reduce) .ld-tunnel { height: 400vh; overflow: visible; }
 .ld-js:not(.ld-reduce) .ld-tunnel-sticky { position: sticky; top: 0; height: 100vh; }
 .ld-frame {
   /* z en «marcos»: negativo = lejos; al pasar de ~1 el marco cruza la cámara y desaparece. */
-  --z: calc(var(--p) * 7.4 - var(--i));
+  --z: calc(var(--p) * 6.3 - var(--i));
+  /* Avance local de la escena: se dibuja mientras se acerca al frente (de un marco atrás hasta el frente). */
+  --lp: clamp(0, (var(--z) + 0.7) / 0.55, 1);
+  /* Solo la escena del frente es visible: entra desde z -0.9, se mantiene y sale antes de cruzar la cámara. */
+  --vis: calc(clamp(0, (var(--z) + 0.9) * 4, 1) * (1 - clamp(0, (var(--z) - 0.3) * 5, 1)));
   position: absolute; left: 50%; top: 50%; width: min(80vw, 1120px); aspect-ratio: 16 / 9; margin: 0;
   translate: -50% -50%; border: 1px solid rgba(255, 255, 255, 0.32);
   /* Sin sombras ni filtros: el marco solo se compone (transform/opacity), no se repinta al desplazarse. */
@@ -249,4 +254,42 @@
 @media (max-width: 759px) {
   .ld-frame-end span { font-size: 10px; letter-spacing: 0.16em; max-width: 80%; white-space: normal; }
   .ld-frame-label { font-size: 11px; letter-spacing: 0.12em; }
+}
+
+/* ---------- Escenas del túnel (SVG de línea) ---------- */
+/* Sin JS o con movimiento reducido (sin --p en línea) se muestra la primera escena, completa. */
+.ld-tunnel:not([style*="--p"]) { --p: 0.16; } /* vista estática: la primera escena al frente, completa */
+.ld-scene-svg { position: absolute; left: 6%; top: 6%; width: 88%; height: 80%; overflow: visible; opacity: var(--vis); }
+.ld-scene-svg * { vector-effect: non-scaling-stroke; }
+.ld-scene-svg g, .ld-scene-svg path, .ld-scene-svg rect, .ld-scene-svg circle { fill: none; stroke: rgba(255, 255, 255, 0.8); stroke-width: 1.4; }
+.ld-scene-svg [style*="--a0"] { --a: clamp(0, (var(--lp) - var(--a0)) / (var(--a1) - var(--a0)), 1); }
+.ld-scene-svg .sc-draw { stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--a)); }
+.ld-scene-svg .sc-fade { opacity: var(--a); }
+.ld-scene-svg .sc-t { fill: #d6d6d6; stroke: none; font-size: 10px; letter-spacing: 0.14em; font-family: inherit; }
+.ld-scene-svg .sc-strong { fill: #ffffff; font-weight: 600; }
+.ld-scene-svg .sc-big { font-size: 14px; letter-spacing: 0.2em; }
+.ld-scene-svg .sc-tiny { font-size: 8px; letter-spacing: 0.12em; }
+.ld-scene-svg .sc-bar { fill: rgba(255, 255, 255, 0.22); stroke: none; }
+.ld-scene-svg .sc-glow { fill: rgba(255, 255, 255, 0.08); stroke: none; }
+.ld-scene-svg .sc-paper { fill: rgba(255, 255, 255, 0.05); }
+.ld-scene-svg .sc-solid { fill: #222222; }
+.ld-scene-svg .sc-sign { stroke: #ffffff; stroke-width: 1.8; }
+.ld-scene-svg .sc-pen { transform: translate(calc(236px + var(--a) * 196px), calc(290px - var(--a) * 4px)); opacity: calc(clamp(0, var(--a) * 20, 1) * (1 - clamp(0, (var(--a) - 0.96) * 25, 1))); }
+.ld-scene-svg .sc-shackle { transform: translateY(calc(var(--a) * -14px)); }
+.ld-scene-svg .sc-rise { opacity: var(--a); transform: translateY(calc((1 - var(--a)) * 18px)); }
+.ld-scene-svg .sc-move-l { transform: translateX(calc(var(--a) * 166px)); }
+.ld-scene-svg .sc-move-r { transform: translateX(calc(var(--a) * -166px)); }
+.ld-scene-svg .sc-move-l2 { transform: translateX(calc(var(--a) * 40px - 40px)); opacity: calc(0.3 + var(--a) * 0.7); }
+.ld-scene-svg .sc-move-r2 { transform: translateX(calc(40px - var(--a) * 40px)); opacity: calc(0.3 + var(--a) * 0.7); }
+.ld-scene-svg .sc-stamp { opacity: var(--a); transform-origin: 320px 180px; transform: scale(calc(1.6 - var(--a) * 0.6)); }
+.ld-scene-svg .sc-seal { fill: #1a1a1a; stroke: #ffffff; }
+.ld-scene-svg .sc-dot { fill: #ffffff; stroke: none; }
+.ld-frame-label { background: rgba(26, 26, 26, 0.7); padding: 6px 10px; opacity: var(--vis); }
+.ld-frame-end img, .ld-frame-end span { opacity: clamp(0, (var(--z) + 0.9) * 2.5, 1); }
+.ld-tunnel-note {
+  position: absolute; left: 50%; bottom: 20px; translate: -50% 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: #8a8a8a; pointer-events: none;
+}
+@media (max-width: 759px) {
+  .ld-scene-svg { left: 2%; width: 96%; top: 12%; height: 70%; }
 }
