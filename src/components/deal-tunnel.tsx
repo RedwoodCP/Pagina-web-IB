@@ -44,7 +44,7 @@ export function DealTunnel() {
         </g>
         <g className="sc-fade" style={w(0.55, 0.95)}>
           <rect x="247" y="171" width="146" height="94" className="sc-glow" />
-          <text x="258" y="192" className="sc-t sc-strong">RW-1042</text>
+          <text x="258" y="192" className="sc-t sc-strong sc-m">RW-1042</text>
           <text x="258" y="206" className="sc-t sc-tiny">INDUSTRIAL · BAJÍO</text>
           <rect x="258" y="218" width="80" height="3" className="sc-bar" />
           <rect x="258" y="227" width="110" height="3" className="sc-bar" />
@@ -90,7 +90,7 @@ export function DealTunnel() {
           </g>
         ))}
         <g className="sc-fade" style={w(0.8, 1)}>
-          <text x="320" y="96" textAnchor="middle" className="sc-t sc-strong">ACCESO AUTORIZADO</text>
+          <text x="320" y="72" textAnchor="middle" className="sc-t sc-strong sc-m">ACCESO AUTORIZADO</text>
         </g>
       </Frame>
 
@@ -102,20 +102,21 @@ export function DealTunnel() {
           <path d="M40 300h560" pathLength={1} />
         </g>
         <g className="sc-fade" style={w(0.05, 0.35)}>
-          <text x="90" y="84" className="sc-t sc-strong">COMPRADOR</text>
-          <text x="550" y="84" textAnchor="end" className="sc-t sc-strong">VENDEDOR</text>
+          <text x="90" y="84" className="sc-t sc-strong sc-m">COMPRADOR</text>
+          <text x="550" y="84" textAnchor="end" className="sc-t sc-strong sc-m">VENDEDOR</text>
         </g>
+        {/* Oferta arriba y contraoferta abajo: no se enciman al converger; sus etiquetas se desvanecen al coincidir. */}
         <g className="sc-move sc-move-l" style={w(0.25, 0.8)}>
-          <path d="M150 112v116" className="sc-line" />
-          <text x="150" y="104" textAnchor="middle" className="sc-t">OFERTA</text>
+          <path d="M150 126v44" className="sc-line" />
+          <text x="150" y="116" textAnchor="middle" className="sc-t sc-tag">OFERTA</text>
         </g>
         <g className="sc-move sc-move-r" style={w(0.25, 0.8)}>
-          <path d="M490 112v116" className="sc-line" />
-          <text x="490" y="104" textAnchor="middle" className="sc-t">CONTRAOFERTA</text>
+          <path d="M490 170v44" className="sc-line" />
+          <text x="490" y="232" textAnchor="middle" className="sc-t sc-tag">CONTRAOFERTA</text>
         </g>
         <g className="sc-fade" style={w(0.8, 0.95)}>
           <circle cx="320" cy="170" r="10" className="sc-dot" />
-          <text x="320" y="256" textAnchor="middle" className="sc-t sc-strong">TÉRMINOS ACORDADOS</text>
+          <text x="320" y="272" textAnchor="middle" className="sc-t sc-strong sc-m">TÉRMINOS ACORDADOS</text>
         </g>
         {["PRECIO", "ESTRUCTURA", "PLAZO"].map((t, k) => (
           <g key={t} className="sc-fade" style={w(0.55 + k * 0.12, 0.7 + k * 0.12)}>
@@ -137,7 +138,7 @@ export function DealTunnel() {
         <g className="sc-stamp" style={w(0.6, 0.85)}>
           <circle cx="320" cy="180" r="56" className="sc-seal" />
           <circle cx="320" cy="180" r="48" className="sc-line" />
-          <text x="320" y="185" textAnchor="middle" className="sc-t sc-strong sc-big">CERRADO</text>
+          <text x="320" y="185" textAnchor="middle" className="sc-t sc-strong sc-big sc-m">CERRADO</text>
         </g>
       </Frame>
 

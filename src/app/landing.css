@@ -188,9 +188,9 @@
   /* z en «marcos»: negativo = lejos; al pasar de ~1 el marco cruza la cámara y desaparece. */
   --z: calc(var(--p) * 6.3 - var(--i));
   /* Avance local de la escena: se dibuja mientras se acerca al frente (de un marco atrás hasta el frente). */
-  --lp: clamp(0, (var(--z) + 0.7) / 0.55, 1);
-  /* Solo la escena del frente es visible: entra desde z -0.9, se mantiene y sale antes de cruzar la cámara. */
-  --vis: calc(clamp(0, (var(--z) + 0.9) * 4, 1) * (1 - clamp(0, (var(--z) - 0.3) * 5, 1)));
+  --lp: clamp(0, (var(--z) + 0.5) / 0.5, 1);
+  /* Solo la escena del frente es visible: entra entre z -0.6 y -0.4 y sale entre 0.25 y 0.4, así dos escenas nunca coinciden. */
+  --vis: calc(clamp(0, (var(--z) + 0.6) * 5, 1) * (1 - clamp(0, (var(--z) - 0.25) * 6.7, 1)));
   position: absolute; left: 50%; top: 50%; width: min(80vw, 1120px); aspect-ratio: 16 / 9; margin: 0;
   translate: -50% -50%; border: 1px solid rgba(255, 255, 255, 0.32);
   /* Sin sombras ni filtros: el marco solo se compone (transform/opacity), no se repinta al desplazarse. */
@@ -285,11 +285,20 @@
 .ld-scene-svg .sc-seal { fill: #1a1a1a; stroke: #ffffff; }
 .ld-scene-svg .sc-dot { fill: #ffffff; stroke: none; }
 .ld-frame-label { background: rgba(26, 26, 26, 0.7); padding: 6px 10px; opacity: var(--vis); }
-.ld-frame-end img, .ld-frame-end span { opacity: clamp(0, (var(--z) + 0.9) * 2.5, 1); }
+.ld-frame-end img, .ld-frame-end span { opacity: clamp(0, (var(--z) + 0.6) * 2.5, 1); }
 .ld-tunnel-note {
   position: absolute; left: 50%; bottom: 20px; translate: -50% 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
   color: #8a8a8a; pointer-events: none;
 }
 @media (max-width: 759px) {
   .ld-scene-svg { left: 2%; width: 96%; top: 12%; height: 70%; }
+}
+
+/* Etiquetas de oferta y contraoferta: se desvanecen al coincidir. */
+.ld-scene-svg .sc-tag { opacity: calc(1 - clamp(0, (var(--a) - 0.75) * 4, 1)); }
+/* Móvil: el dibujo se ve pequeño; solo quedan las palabras clave, más grandes. El título del marco explica la escena. */
+@media (max-width: 759px) {
+  .ld-scene-svg .sc-t { display: none; }
+  .ld-scene-svg .sc-t.sc-m { display: inline; font-size: 20px; letter-spacing: 0.08em; }
+  .ld-scene-svg .sc-t.sc-big.sc-m { font-size: 18px; letter-spacing: 0.06em; }
 }
