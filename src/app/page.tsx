@@ -122,6 +122,24 @@ export default async function Landing() {
         </div>
       </section>
 
+      {/* ---------- Túnel: transición en profundidad hacia «Cómo funciona» (decorativo) ---------- */}
+      <section className="ld-tunnel on-dark" data-scrub aria-hidden="true">
+        <div className="ld-tunnel-sticky">
+          {Array.from({ length: 7 }, (_, i) => {
+            const label = i >= 1 && i <= 5 ? PRINCIPLES[i - 1]![1] : null;
+            return (
+              <div key={i} className="ld-frame" style={{ "--i": i } as React.CSSProperties}>
+                {label && <span className="ld-frame-label"><span className="num">0{i}</span> {label}</span>}
+              </div>
+            );
+          })}
+          <div className="ld-frame ld-frame-end" style={{ "--i": 7 } as React.CSSProperties}>
+            <img src="/brand/rw-isotipo-blanco.png" alt="" />
+            <span>RED PRIVADA DE TRANSACCIONES</span>
+          </div>
+        </div>
+      </section>
+
       {/* ---------- Cómo funciona: secuencia breve ---------- */}
       <section id="como" className="ld-how" data-how data-step="0">
         <div className="ld-how-sticky">
@@ -218,17 +236,22 @@ export default async function Landing() {
         </div>
       </section>
 
-      {/* ---------- Cierre ---------- */}
-      <section className="on-dark ld-cta" data-reveal="cta">
-        <div className="ld-cta-bg" aria-hidden="true" />
-        <div className="wrap" style={{ position: "relative", padding: "clamp(72px, 9vw, 112px) var(--px)", display: "flex", flexWrap: "wrap", gap: 32, alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ maxWidth: 640 }}>
-            <h2 style={{ fontSize: 32, fontWeight: 300, margin: "0 0 12px", lineHeight: 1.2 }}>El acceso es por invitación o con aprobación de nuestro equipo.</h2>
-            <p style={{ color: "#AEAEAE", fontSize: 16 }}>Revisamos cada solicitud para mantener una comunidad de participantes calificados.</p>
-          </div>
-          <div className="wrap-gap" style={{ gap: 12 }}>
-            <Link href="/solicitar-acceso" className="btn btn-light btn-lg">Solicitar acceso</Link>
-            <Link href="/iniciar-sesion" className="btn btn-ghost-dark btn-lg">Iniciar sesión</Link>
+      {/* ---------- Cierre: dos persianas (comprador y vendedor) se cierran sobre la llamada a la acción ---------- */}
+      <section className="on-dark ld-deal" data-scrub data-deal>
+        <div className="ld-deal-sticky">
+          <div className="ld-blind ld-blind-l" aria-hidden="true"><span className="ld-blind-label">Comprador</span></div>
+          <div className="ld-blind ld-blind-r" aria-hidden="true"><span className="ld-blind-label">Vendedor</span></div>
+          <div className="ld-deal-hint" aria-hidden="true">ACCESO POR INVITACIÓN</div>
+          <div className="ld-seal" aria-hidden="true"><img src="/brand/rw-isotipo-blanco.png" alt="" /></div>
+          <div className="wrap ld-deal-content">
+            <div style={{ maxWidth: 640 }}>
+              <h2 style={{ fontSize: 32, fontWeight: 300, margin: "0 0 12px", lineHeight: 1.2 }}>El acceso es por invitación o con aprobación de nuestro equipo.</h2>
+              <p style={{ color: "#AEAEAE", fontSize: 16 }}>Revisamos cada solicitud para mantener una comunidad de participantes calificados.</p>
+            </div>
+            <div className="wrap-gap" style={{ gap: 12 }}>
+              <Link href="/solicitar-acceso" className="btn btn-light btn-lg">Solicitar acceso</Link>
+              <Link href="/iniciar-sesion" className="btn btn-ghost-dark btn-lg">Iniciar sesión</Link>
+            </div>
           </div>
         </div>
       </section>

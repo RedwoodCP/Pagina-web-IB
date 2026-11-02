@@ -8,6 +8,7 @@ import { useEffect } from "react";
  * - Navegación: cambia de estilo al desplazarse.
  * - Primera pantalla: capas con desplazamiento según el cursor e inclinación moderada de la tarjeta (solo puntero fino).
  * - «Cómo funciona»: el paso activo sigue al scroll dentro de una sección fija (solo escritorio).
+ * - Túnel y cierre [data-scrub]: el avance del scroll dentro de la sección fija se expone como --p.
  * - Tarjetas [data-tilt]: inclinación ligera al pasar el cursor.
  * Con prefers-reduced-motion no se activa ningún efecto dependiente del movimiento.
  */
@@ -45,6 +46,7 @@ export function LandingMotion() {
     const how = root.querySelector<HTMLElement>("[data-how]");
     const steps = how ? Array.from(how.querySelectorAll<HTMLElement>("[data-step-item]")) : [];
     const cards = how ? Array.from(how.querySelectorAll<HTMLElement>(".ld-sc")) : [];
+    const scrubs = Array.from(root.querySelectorAll<HTMLElement>("[data-scrub]"));
     const pinned = () => !reduce && matchMedia("(min-width: 1000px)").matches;
     let ticking = false;
     const setStep = (n: number) => {
@@ -59,6 +61,15 @@ export function LandingMotion() {
       requestAnimationFrame(() => {
         ticking = false;
         nav?.classList.toggle("is-scrolled", scrollY > 24);
+        // Secciones fijas que avanzan con el scroll (túnel y cierre): --p de 0 a 1.
+        if (!reduce)
+          for (const el of scrubs) {
+            const r = el.getBoundingClientRect();
+            if (r.bottom < -innerHeight || r.top > innerHeight * 2) continue;
+            const p = Math.min(1, Math.max(0, -r.top / Math.max(1, el.offsetHeight - innerHeight)));
+            el.style.setProperty("--p", p.toFixed(4));
+            if (el.hasAttribute("data-deal")) el.classList.toggle("is-closed", p > 0.6);
+          }
         if (how && pinned()) {
           const r = how.getBoundingClientRect();
           const span = how.offsetHeight - innerHeight;

@@ -161,25 +161,11 @@
   }
 }
 
-/* ---------- Cierre ---------- */
-.ld-cta { position: relative; overflow: hidden; background: var(--ink); color: var(--white); }
-.ld-cta-bg {
-  position: absolute; inset: 0; background: url("/brand/degradado.jpg") center / cover no-repeat; opacity: 0.32;
-}
-.ld-cta-bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(26, 26, 26, 0.85), rgba(26, 26, 26, 0.45)); }
-/* La sección no se desplaza: entran su fondo (escala) y su contenido. */
-.ld-js .ld-cta[data-reveal]:not(.is-in) { opacity: 1; translate: none; }
-.ld-js .ld-cta .ld-cta-bg { transform: scale(1.08); transition: transform 1.6s var(--ease-out); }
-.ld-js .ld-cta.is-in .ld-cta-bg { transform: scale(1); }
-.ld-js .ld-cta .wrap > * { transition: opacity 0.9s var(--ease-out), translate 0.9s var(--ease-out); }
-.ld-js .ld-cta .wrap > :nth-child(2) { transition-delay: 0.12s; }
-.ld-js .ld-cta:not(.is-in) .wrap > * { opacity: 0; translate: 0 16px; }
-
 /* ---------- Movimiento reducido: sin animaciones ni transformaciones decorativas ---------- */
 @media (prefers-reduced-motion: reduce) {
   .ld *, .ld *::before, .ld *::after { animation: none !important; transition: none !important; }
-  .ld [data-reveal], .ld .ld-cta .wrap > * { opacity: 1 !important; translate: none !important; }
-  .ld .ld-layer, .ld .ld-hero-card, .ld .ld-aud, .ld .ld-cta-bg { transform: none !important; }
+  .ld [data-reveal] { opacity: 1 !important; translate: none !important; }
+  .ld .ld-layer, .ld .ld-hero-card, .ld .ld-aud { transform: none !important; }
 }
 
 /* Móvil: sin planos detrás del texto (legibilidad) y áreas táctiles amplias en el pie. */
@@ -187,3 +173,80 @@
   .ld-plane { display: none; }
 }
 .ld-footer-links a { display: inline-flex; align-items: center; min-height: 44px; }
+
+/* ---------- Túnel: marcos en profundidad que la «cámara» atraviesa con el scroll ---------- */
+/* --p (0 → 1) lo fija el JS; sin JS o con movimiento reducido queda la vista inicial, estática. */
+.ld-tunnel { --p: 0; position: relative; height: 70vh; background: var(--ink); overflow: hidden; }
+.ld-tunnel-sticky {
+  position: relative; height: 100%; overflow: hidden; perspective: 700px; perspective-origin: 50% 50%;
+  background: radial-gradient(ellipse at 50% 50%, #2f2f2f 0%, #1a1a1a 62%);
+}
+.ld-js:not(.ld-reduce) .ld-tunnel { height: 230vh; overflow: visible; }
+.ld-js:not(.ld-reduce) .ld-tunnel-sticky { position: sticky; top: 0; height: 100vh; }
+.ld-frame {
+  /* z en «marcos»: negativo = lejos; al pasar de ~1 el marco cruza la cámara y desaparece. */
+  --z: calc(var(--p) * 7.4 - var(--i));
+  position: absolute; left: 50%; top: 50%; width: min(80vw, 1120px); aspect-ratio: 16 / 9; margin: 0;
+  translate: -50% -50%; border: 1px solid rgba(255, 255, 255, 0.32);
+  /* Sin sombras ni filtros: el marco solo se compone (transform/opacity), no se repinta al desplazarse. */
+  will-change: transform, opacity;
+  transform: translateZ(calc(var(--z) * 560px));
+  opacity: calc(clamp(0, (1.15 - var(--z)) * 3, 1) * clamp(0, 1 + var(--z) * 0.17, 1));
+  pointer-events: none;
+}
+@media (max-width: 759px) { .ld-frame { width: 84vw; aspect-ratio: 3 / 4; } }
+.ld-frame-label {
+  position: absolute; left: 24px; bottom: 20px; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: #f0f0f0; font-weight: 600; white-space: nowrap;
+}
+.ld-frame-label .num { color: #aeaeae; margin-right: 8px; font-weight: 400; }
+.ld-frame-end { border-color: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; }
+.ld-frame-end img { width: min(260px, 40vw); height: auto; opacity: 0.9; }
+.ld-frame-end span { font-size: 12px; letter-spacing: 0.24em; color: #f0f0f0; font-weight: 600; text-align: center; white-space: nowrap; }
+
+/* ---------- Cierre: dos persianas que se juntan («comprador» y «vendedor») ---------- */
+.ld-deal { --p: 1; position: relative; background: #fafafa; }
+.ld-deal-sticky { position: relative; min-height: 460px; display: flex; align-items: center; overflow: hidden; }
+/* Avance de cierre: entreabiertas al inicio → cerradas a ~50% del recorrido; luego el sello y el contenido. */
+.ld-blind {
+  --c: clamp(0, 0.14 + var(--p) * 1.75, 1);
+  position: absolute; top: 0; bottom: 0; width: 50%; background: linear-gradient(180deg, #2f2f2f, #1a1a1a);
+  display: flex; align-items: center;
+}
+.ld-blind-l {
+  left: 0; transform: translateX(calc((1 - var(--c)) * -100%)); justify-content: flex-end;
+  border-right: 1px solid rgba(255, 255, 255, 0.2); transition: border-color 0.6s var(--ease);
+}
+.ld-deal.is-closed .ld-blind-l { border-right-color: transparent; }
+.ld-blind-r { right: 0; transform: translateX(calc((1 - var(--c)) * 100%)); justify-content: flex-start; }
+.ld-blind-r { background: linear-gradient(180deg, #262626, #1a1a1a); }
+.ld-blind-label {
+  padding: 0 clamp(16px, 3vw, 40px); font-size: clamp(22px, 4vw, 52px); font-weight: 300; letter-spacing: 0.04em; color: #f0f0f0;
+  opacity: calc(1 - clamp(0, (var(--p) - 0.4) * 7, 1));
+}
+.ld-seal {
+  position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 88px; height: 88px; border-radius: 50%;
+  display: grid; place-items: center; background: #1a1a1a; border: 1px solid rgba(255, 255, 255, 0.35);
+  opacity: calc(clamp(0, (var(--p) - 0.44) * 12, 1) * (1 - clamp(0, (var(--p) - 0.6) * 12, 1)));
+  scale: calc(0.6 + clamp(0, (var(--p) - 0.44) * 12, 1) * 0.4);
+}
+.ld-seal img { width: 52px; height: auto; }
+.ld-deal-hint {
+  position: absolute; left: 50%; top: 50%; translate: -50% -50%; font-size: 12px; letter-spacing: 0.24em; font-weight: 600;
+  color: var(--lead); white-space: nowrap; opacity: calc(1 - clamp(0, var(--p) * 4, 1));
+}
+.ld-deal:not([style*="--p"]) .ld-deal-hint { opacity: 0; }
+.ld-deal-content {
+  position: relative; z-index: 2; width: 100%; padding: clamp(72px, 9vw, 112px) var(--px);
+  display: flex; flex-wrap: wrap; gap: 32px; align-items: center; justify-content: space-between; color: var(--white);
+}
+.ld-js:not(.ld-reduce) .ld-deal { height: 200vh; }
+.ld-js:not(.ld-reduce) .ld-deal-sticky { position: sticky; top: 0; height: 100vh; }
+.ld-js:not(.ld-reduce) .ld-deal-content { transition: opacity 0.7s var(--ease-out), translate 0.7s var(--ease-out); }
+.ld-js:not(.ld-reduce) .ld-deal:not(.is-closed) .ld-deal-content { opacity: 0; translate: 0 16px; pointer-events: none; }
+/* Si el teclado llega antes de que se cierren, el contenido se muestra igual. */
+.ld-js:not(.ld-reduce) .ld-deal:focus-within .ld-deal-content { opacity: 1; translate: 0 0; pointer-events: auto; }
+@media (max-width: 759px) {
+  .ld-frame-end span { font-size: 10px; letter-spacing: 0.16em; max-width: 80%; white-space: normal; }
+  .ld-frame-label { font-size: 11px; letter-spacing: 0.12em; }
+}

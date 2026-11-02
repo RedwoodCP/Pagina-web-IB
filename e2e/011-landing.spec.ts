@@ -11,8 +11,14 @@ test.describe("Landing pública", () => {
     await page.keyboard.press("Enter");
     await expect(page.locator("[data-how]")).toHaveAttribute("data-step", "2");
     // Las acciones siguen disponibles
+    // Túnel: el avance del scroll llega a la sección; cierre: las persianas se cierran y aparece la llamada
+    await page.evaluate(() => { const t = document.querySelector<HTMLElement>(".ld-tunnel")!; scrollTo(0, t.offsetTop + t.offsetHeight / 2); });
+    await expect.poll(() => page.evaluate(() => Number(document.querySelector<HTMLElement>(".ld-tunnel")!.style.getPropertyValue("--p")))).toBeGreaterThan(0.2);
     await page.evaluate(() => scrollTo(0, document.body.scrollHeight));
+    await expect(page.locator("[data-deal]")).toHaveClass(/is-closed/);
     await expect(page.getByRole("link", { name: "Solicitar acceso" }).last()).toBeVisible();
+    await page.getByRole("link", { name: "Solicitar acceso" }).last().click();
+    await expect(page).toHaveURL(/solicitar-acceso/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
     expect(errors).toEqual([]);
   });
@@ -24,6 +30,8 @@ test.describe("Landing pública", () => {
     const hidden = await page.evaluate(() => [...document.querySelectorAll("[data-reveal]")].filter((e) => getComputedStyle(e).opacity !== "1").length);
     expect(hidden).toBe(0);
     expect(await page.evaluate(() => getComputedStyle(document.querySelector(".ld-how-sticky")!).position)).not.toBe("sticky");
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector(".ld-tunnel-sticky")!).position)).not.toBe("sticky");
+    await expect(page.getByRole("link", { name: "Solicitar acceso" }).last()).toBeVisible();
     await ctx.close();
   });
 
