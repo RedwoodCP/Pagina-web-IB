@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { VAULT_FLAG } from "./vault";
 
 /**
  * Movimiento de la landing pública (mejora progresiva: sin JS, todo el contenido es visible y funcional).
@@ -8,11 +10,14 @@ import { useEffect } from "react";
  * - Navegación: cambia de estilo al desplazarse.
  * - Primera pantalla: capas con desplazamiento según el cursor e inclinación moderada de la tarjeta (solo puntero fino).
  * - «Cómo funciona»: el paso activo sigue al scroll dentro de una sección fija (solo escritorio).
+ * - Confidencialidad [data-conf]: un expediente se destapa por etapas, una por principio.
  * - Túnel y cierre [data-scrub]: el avance del scroll dentro de la sección fija se expone como --p.
  * - Tarjetas [data-tilt]: inclinación ligera al pasar el cursor.
+ * - Enlaces [data-vault]: transición «bóveda» (las puertas se cierran y se abren en la página de destino).
  * Con prefers-reduced-motion no se activa ningún efecto dependiente del movimiento.
  */
 export function LandingMotion() {
+  const router = useRouter();
   useEffect(() => {
     const root = document.querySelector<HTMLElement>(".ld");
     if (!root) return;
@@ -70,6 +75,11 @@ export function LandingMotion() {
             el.style.setProperty("--p", p.toFixed(4));
             if (el.hasAttribute("data-deal")) el.classList.toggle("is-closed", p > 0.6);
           }
+        if (conf && pinned()) {
+          const r = conf.getBoundingClientRect();
+          const p = Math.min(1, Math.max(0, -r.top / Math.max(1, conf.offsetHeight - innerHeight)));
+          setConf(Math.min(5, Math.floor(p * 6)));
+        }
         if (how && pinned()) {
           const r = how.getBoundingClientRect();
           const span = how.offsetHeight - innerHeight;
@@ -79,6 +89,30 @@ export function LandingMotion() {
       });
     };
     steps[0]?.toggleAttribute("data-active", true);
+
+    // --- Confidencialidad: etapas acumulativas del expediente (st-1…st-5)
+    const conf = root.querySelector<HTMLElement>("[data-conf]");
+    const confItems = conf ? Array.from(conf.querySelectorAll<HTMLElement>("[data-conf-item]")) : [];
+    let confStage = 5;
+    const setConf = (n: number) => {
+      if (!conf || n === confStage) return;
+      confStage = n;
+      for (let k = 1; k <= 5; k++) conf.classList.toggle(`st-${k}`, k <= n);
+      confItems.forEach((el) => el.toggleAttribute("data-active", Number(el.dataset.confItem) === n));
+    };
+    // Móvil (sin sección fija): al entrar en pantalla se destapa por etapas, una sola vez.
+    if (conf && !reduce && !pinned() && "IntersectionObserver" in window) {
+      setConf(0);
+      const io2 = new IntersectionObserver((es) => {
+        if (!es.some((e) => e.isIntersecting)) return;
+        io2.disconnect();
+        let n = 0;
+        const t = setInterval(() => (++n > 5 ? clearInterval(t) : setConf(n)), 450);
+        cleanups.push(() => clearInterval(t));
+      }, { threshold: 0.35 });
+      io2.observe(conf.querySelector(".ld-file") ?? conf);
+      cleanups.push(() => io2.disconnect());
+    }
     addEventListener("scroll", onScroll, { passive: true });
     addEventListener("resize", onScroll, { passive: true });
     onScroll();
@@ -161,7 +195,37 @@ export function LandingMotion() {
       });
     }
 
+    // --- Bóveda: solo clic principal sin teclas modificadoras; con movimiento reducido, navegación normal.
+    if (!reduce) {
+      const onVault = (e: MouseEvent) => {
+        const a = (e.target as HTMLElement).closest<HTMLAnchorElement>("a[data-vault]");
+        if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const href = a.getAttribute("href")!;
+        const v = document.createElement("div");
+        v.className = "vault is-closing";
+        v.setAttribute("aria-hidden", "true");
+        v.innerHTML = '<div class="vault-door vault-l"></div><div class="vault-door vault-r"></div><div class="vault-seal"><img src="/brand/rw-isotipo-blanco.png" alt=""></div>';
+        document.body.appendChild(v);
+        requestAnimationFrame(() => requestAnimationFrame(() => v.classList.add("is-shut")));
+        setTimeout(() => {
+          try {
+            sessionStorage.setItem(VAULT_FLAG, "1");
+          } catch {}
+          router.push(href);
+        }, 720);
+        // Respaldo: si la navegación no ocurre, no dejar la pantalla cubierta.
+        setTimeout(() => v.remove(), 4000);
+      };
+      root.addEventListener("click", onVault, true);
+      cleanups.push(() => {
+        root.removeEventListener("click", onVault, true);
+        document.querySelectorAll(".vault.is-closing").forEach((n) => n.remove());
+      });
+    }
+
     return () => cleanups.forEach((f) => f());
-  }, []);
+  }, [router]);
   return null;
 }

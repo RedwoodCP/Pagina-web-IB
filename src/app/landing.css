@@ -302,3 +302,116 @@
   .ld-scene-svg .sc-t.sc-m { display: inline; font-size: 20px; letter-spacing: 0.08em; }
   .ld-scene-svg .sc-t.sc-big.sc-m { font-size: 18px; letter-spacing: 0.06em; }
 }
+
+/* ---------- Confidencialidad: expediente que se desclasifica ---------- */
+/* Etapas acumulativas st-1…st-5 (una por principio). El marcado trae todas: estado final sin JS. */
+.ld-conf { position: relative; background: #fff; border-top: 1px solid rgba(26, 26, 26, 0.08); border-bottom: 1px solid rgba(26, 26, 26, 0.08); }
+.ld-conf-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; align-items: center; padding-top: clamp(56px, 8vw, 96px); padding-bottom: clamp(56px, 8vw, 96px); }
+.ld-principles { margin-top: 28px; }
+.ld-principles .ld-principle { padding: 16px 0; }
+@media (min-width: 1000px) {
+  .ld-conf-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 72px; }
+  .ld-js:not(.ld-reduce) .ld-conf { height: 240vh; }
+  .ld-js:not(.ld-reduce) .ld-conf-sticky { position: sticky; top: 0; height: 100vh; display: flex; align-items: center; padding-top: 40px; }
+  .ld-js:not(.ld-reduce) .ld-conf-grid { padding-top: 0; padding-bottom: 0; }
+  .ld-js:not(.ld-reduce) .ld-principle { transition: opacity 0.5s var(--ease), translate 0.8s var(--ease-out); opacity: 0.38; }
+  .ld-js:not(.ld-reduce) .ld-principle[data-active] { opacity: 1; }
+  .ld-principles .ld-principle p { font-size: 14px; }
+}
+
+.ld-file {
+  position: relative; background: #fff; border: 1px solid var(--line-2); padding: 28px 28px 72px; color: var(--ink);
+  box-shadow: 0 40px 80px -44px rgba(26, 26, 26, 0.45); max-width: 560px; width: 100%; justify-self: center;
+}
+.ld-file-head { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.18em; font-weight: 700; }
+.ld-file-ex { color: var(--lead); font-weight: 600; }
+.ld-file-stamp {
+  position: absolute; bottom: 24px; right: 24px; rotate: -8deg; border: 2px solid var(--ink); padding: 4px 10px;
+  font-size: 12px; letter-spacing: 0.22em; font-weight: 700; opacity: 0.85;
+}
+.ld-file-kv { margin: 22px 0 0; }
+.ld-file-kv > div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.ld-file-kv dt { color: var(--lead); font-size: 12px; letter-spacing: 0.06em; }
+.ld-file-kv dd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.ld-file-lock, .ld-file-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--lead); letter-spacing: 0.04em; }
+.ld-file-tag { border: 1px solid var(--line-2); padding: 1px 6px; }
+.ld-file-sub { font-size: 11px; letter-spacing: 0.16em; color: var(--lead); font-weight: 600; text-transform: uppercase; margin: 18px 0 6px; }
+.ld-file-doc { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.ld-file-doc span { display: inline-flex; align-items: center; gap: 6px; }
+.ld-file-perm { font-size: 11px; letter-spacing: 0.06em; border: 1px solid var(--line-3); padding: 1px 8px; }
+.ld-file-logline { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; color: var(--carbon); }
+
+/* Tachado: barra negra encima del texto que se retira hacia la derecha. data-s="x" nunca se retira. */
+.rd { position: relative; display: inline-block; }
+.rd::after { content: ""; position: absolute; inset: -2px -4px; background: var(--ink); transform-origin: right; transition: transform 0.7s var(--ease-out); }
+.st-1 .rd[data-s="1"]::after, .st-2 .rd[data-s="2"]::after, .st-3 .rd[data-s="3"]::after { transform: scaleX(0); }
+.ld-file-tag[data-s] { transition: opacity 0.5s var(--ease) 0.4s; }
+.ld-conf:not(.st-1) .ld-file-tag[data-s="1"], .ld-conf:not(.st-3) .ld-file-tag[data-s="3"] { opacity: 0; }
+.ld-file-docs .ld-file-doc, .ld-file-log .ld-file-logline { transition: opacity 0.5s var(--ease) calc(var(--i) * 120ms), translate 0.6s var(--ease-out) calc(var(--i) * 120ms); }
+.ld-conf:not(.st-4) .ld-file-doc, .ld-conf:not(.st-5) .ld-file-logline { opacity: 0; translate: 0 8px; }
+.ld-conf:not(.st-4) .ld-file-docs .ld-file-sub, .ld-conf:not(.st-5) .ld-file-log .ld-file-sub { opacity: 0.35; }
+/* El sello «Confidencial» se atenúa cuando el comprador ya está autorizado. */
+.ld-file-stamp { transition: opacity 0.6s var(--ease); }
+.st-3 .ld-file-stamp { opacity: 0.25; }
+@media (max-width: 520px) {
+  .ld-file { padding: 20px 20px 64px; }
+  .ld-file-kv > div { grid-template-columns: 92px minmax(0, 1fr); }
+  .ld-file-stamp { bottom: 16px; right: 12px; font-size: 10px; }
+}
+
+/* ---------- Cobertura: mapa de mosaicos por región ---------- */
+.ld-cover { background: var(--ink); color: var(--white); overflow: hidden; }
+.ld-cover-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; align-items: center; padding-top: clamp(64px, 9vw, 112px); padding-bottom: 24px; }
+@media (min-width: 1000px) { .ld-cover-grid { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr); gap: 56px; } }
+.ld-cover-note { font-size: 12px; color: #828282; padding-bottom: clamp(48px, 7vw, 88px); }
+
+.ld-map { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+@media (min-width: 760px) { .ld-map { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); align-items: center; } }
+.ld-map-stage { perspective: 1100px; }
+/* Mesa inclinada en 3D: profundidad sin WebGL. */
+.ld-map-plane {
+  --t: clamp(22px, 3vw, 38px);
+  display: grid; grid-template-columns: repeat(10, var(--t)); grid-template-rows: repeat(6, var(--t)); gap: 5px;
+  justify-content: center; transform: rotateX(26deg) rotateZ(-3deg); transform-style: preserve-3d;
+}
+.ld-tile {
+  --hl: 0;
+  display: grid; place-items: center; font-size: clamp(7px, 0.9vw, 10px); letter-spacing: 0.06em; font-weight: 600;
+  color: rgba(255, 255, 255, calc(0.5 + var(--hl) * 0.5));
+  background: rgba(255, 255, 255, calc(var(--lv) * 0.28 + var(--hl) * 0.45));
+  border: 1px solid rgba(255, 255, 255, calc(0.14 + var(--hl) * 0.5));
+  transform: translateZ(calc(var(--hl) * 18px + var(--lv) * 6px));
+  transition: transform 0.45s var(--ease-out), background-color 0.35s var(--ease), border-color 0.35s var(--ease), color 0.35s var(--ease);
+}
+/* Entrada: los mosaicos se acomodan desde la profundidad, en diagonal. */
+.ld-js .ld-map-plane[data-reveal] { transition: none; }
+.ld-js .ld-map-plane[data-reveal]:not(.is-in) { opacity: 1; translate: none; }
+.ld-js .ld-map-plane[data-reveal]:not(.is-in) .ld-tile { opacity: 0; transform: translateZ(140px) scale(0.6); }
+.ld-js .ld-map-plane[data-reveal] .ld-tile {
+  transition: opacity 0.6s var(--ease) calc(var(--d) * 45ms), transform 0.9s var(--ease-out) calc(var(--d) * 45ms),
+    background-color 0.35s var(--ease), border-color 0.35s var(--ease), color 0.35s var(--ease);
+}
+
+.ld-regions { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.ld-reg {
+  width: 100%; text-align: left; display: grid; gap: 2px; padding: 12px 0 12px 14px; min-height: 44px; background: none; color: inherit; font: inherit;
+  border: 0; border-top: 1px solid rgba(255, 255, 255, 0.14); border-left: 2px solid transparent; cursor: pointer;
+  transition: border-color 0.3s var(--ease), background-color 0.3s var(--ease);
+}
+.ld-reg-name { font-size: 16px; font-weight: 600; }
+.ld-reg-n { font-size: 13px; color: #d0d0d0; }
+.ld-reg-s { font-size: 12px; color: #9a9a9a; }
+
+/* Resaltado de una región al pasar el cursor, tocar o enfocar (en la lista o en el mapa). */
+.ld-map:has([data-r="0"]:is(:hover, :focus)) [data-r="0"],
+.ld-map:has([data-r="1"]:is(:hover, :focus)) [data-r="1"],
+.ld-map:has([data-r="2"]:is(:hover, :focus)) [data-r="2"],
+.ld-map:has([data-r="3"]:is(:hover, :focus)) [data-r="3"],
+.ld-map:has([data-r="4"]:is(:hover, :focus)) [data-r="4"],
+.ld-map:has([data-r="5"]:is(:hover, :focus)) [data-r="5"] { --hl: 1; }
+.ld-map:has([data-r="0"]:is(:hover, :focus)) .ld-reg[data-r="0"],
+.ld-map:has([data-r="1"]:is(:hover, :focus)) .ld-reg[data-r="1"],
+.ld-map:has([data-r="2"]:is(:hover, :focus)) .ld-reg[data-r="2"],
+.ld-map:has([data-r="3"]:is(:hover, :focus)) .ld-reg[data-r="3"],
+.ld-map:has([data-r="4"]:is(:hover, :focus)) .ld-reg[data-r="4"],
+.ld-map:has([data-r="5"]:is(:hover, :focus)) .ld-reg[data-r="5"] { border-left-color: var(--white); background: rgba(255, 255, 255, 0.06); }

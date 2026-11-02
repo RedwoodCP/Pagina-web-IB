@@ -4,6 +4,9 @@ import { Icon } from "@/components/ui";
 import { LandingMotion } from "@/components/landing-motion";
 import { DealTunnel } from "@/components/deal-tunnel";
 import { getCurrentUser } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { env } from "@/lib/env";
+import { RegionMap, regionStats } from "@/components/region-map";
 import "./landing.css";
 
 const HOW = [
@@ -60,6 +63,9 @@ function ExampleCard() {
 export default async function Landing() {
   const user = await getCurrentUser();
   const home = user ? (user.isAdmin ? "/admin/solicitudes" : user.canBuy ? "/panel" : "/venta") : null;
+  // Solo agregados (región y sector) de oportunidades publicadas; los datos de demostración siguen la misma regla que el catálogo.
+  const published = await db.listing.findMany({ where: { status: "publicada", ...(env.showDemo ? {} : { isDemo: false }) }, select: { region: true, sector: true } });
+  const stats = regionStats(published);
   return (
     <div className="ld">
       <LandingMotion />
@@ -72,7 +78,7 @@ export default async function Landing() {
               <a href="#como">Cómo funciona</a>
               <a href="#confidencialidad">Confidencialidad</a>
             </div>
-            <Link href={home ?? "/iniciar-sesion"} className="btn btn-ghost-dark" style={{ height: 40, fontSize: 14, padding: "0 16px" }}>
+            <Link href={home ?? "/iniciar-sesion"} className="btn btn-ghost-dark" style={{ height: 40, fontSize: 14, padding: "0 16px" }} data-vault={home ? undefined : true}>
               {home ? "Ir a la plataforma" : "Iniciar sesión"}
             </Link>
           </nav>
@@ -102,8 +108,8 @@ export default async function Landing() {
               presenta de forma anónima hasta que el vendedor autoriza el acceso.
             </p>
             <div className="wrap-gap ld-in" style={{ gap: 12, "--i": 3 } as React.CSSProperties}>
-              <Link href="/solicitar-acceso" className="btn btn-light btn-lg">Solicitar acceso</Link>
-              <Link href="/invitacion" className="btn btn-ghost-dark btn-lg">Tengo una invitación</Link>
+              <Link href="/solicitar-acceso" className="btn btn-light btn-lg" data-vault>Solicitar acceso</Link>
+              <Link href="/invitacion" className="btn btn-ghost-dark btn-lg" data-vault>Tengo una invitación</Link>
             </div>
           </div>
 
@@ -179,29 +185,82 @@ export default async function Landing() {
         </div>
       </section>
 
-      {/* ---------- Confidencialidad: zona tranquila ---------- */}
-      <section id="confidencialidad" style={{ background: "#fff", borderTop: "1px solid rgba(26,26,26,.08)", borderBottom: "1px solid rgba(26,26,26,.08)" }}>
-        <div className="wrap" style={{ padding: "clamp(56px, 8vw, 96px) var(--px)", display: "flex", flexWrap: "wrap", gap: 48 }}>
-          <div style={{ flex: "1 1 300px" }}>
-            <div className="eyebrow" data-reveal>Confidencialidad</div>
-            <h2 className="h2-light" style={{ margin: "16px 0 20px" }} data-reveal>La identidad de cada empresa se protege por diseño.</h2>
-            <p style={{ fontSize: 16, lineHeight: 1.6, color: "#585858", maxWidth: 440 }} data-reveal>
-              Firmar un acuerdo de confidencialidad y obtener acceso son pasos distintos. El vendedor decide, documento por
-              documento, qué información comparte y con quién.
-            </p>
-          </div>
-          <div style={{ flex: "2 1 600px" }}>
-            {PRINCIPLES.map(([i, t, d], k) => (
-              <div key={t} className="ld-principle" data-reveal style={{ "--i": k } as React.CSSProperties}>
-                <Icon name={i} size={24} />
-                <div>
-                  <div style={{ fontSize: 17, fontWeight: 600 }}>{t}</div>
-                  <p style={{ marginTop: 4, fontSize: 15, lineHeight: 1.55, color: "#585858" }}>{d}</p>
-                </div>
+      {/* ---------- Confidencialidad: un expediente que se desclasifica paso a paso ---------- */}
+      {/* Sin JS, con movimiento reducido o en móvil sin animación: estado final (st-1…st-5). */}
+      <section id="confidencialidad" className="ld-conf st-1 st-2 st-3 st-4 st-5" data-conf>
+        <div className="ld-conf-sticky">
+          <div className="wrap ld-conf-grid">
+            <div>
+              <div className="eyebrow" data-reveal>Confidencialidad</div>
+              <h2 className="h2-light" style={{ margin: "16px 0 20px" }} data-reveal>La identidad de cada empresa se protege por diseño.</h2>
+              <p style={{ fontSize: 16, lineHeight: 1.6, color: "#585858", maxWidth: 440 }} data-reveal>
+                Firmar un acuerdo de confidencialidad y obtener acceso son pasos distintos. El vendedor decide, documento por
+                documento, qué información comparte y con quién.
+              </p>
+              <div className="ld-principles">
+                {PRINCIPLES.map(([i, t, d], k) => (
+                  <div key={t} className="ld-principle" data-reveal data-conf-item={k + 1} style={{ "--i": k } as React.CSSProperties}>
+                    <Icon name={i} size={24} />
+                    <div>
+                      <div style={{ fontSize: 17, fontWeight: 600 }}>{t}</div>
+                      <p style={{ marginTop: 4, fontSize: 15, lineHeight: 1.55, color: "#585858" }}>{d}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Expediente de ejemplo (decorativo): cada principio destapa una parte; la identidad nunca se muestra. */}
+            <div className="ld-file" aria-hidden="true">
+              <div className="ld-file-head">
+                <span>EXPEDIENTE · RW-1042</span>
+                <span className="ld-file-ex">EJEMPLO</span>
+              </div>
+              <div className="ld-file-stamp">CONFIDENCIAL</div>
+              <dl className="ld-file-kv">
+                <div><dt>Razón social</dt><dd><span className="rd" data-s="x">Nombre legal de la empresa</span><span className="ld-file-lock"><Icon name="lock" size={14} /> Solo compradores autorizados</span></dd></div>
+                <div><dt>Ciudad</dt><dd><span className="rd" data-s="x">Ciudad de la empresa</span></dd></div>
+                <div><dt>Sector</dt><dd><span className="rd" data-s="1">Industrial y Manufactura</span></dd></div>
+                <div><dt>Región</dt><dd><span className="rd" data-s="1">Bajío</span></dd></div>
+                <div><dt>Ventas</dt><dd><span className="rd" data-s="1">US$ 18.4 M</span><span className="ld-file-tag" data-s="1">Visible para miembros</span></dd></div>
+                <div><dt>NDA</dt><dd><span className="rd" data-s="2">Firmado por el comprador</span></dd></div>
+                <div><dt>Acceso</dt><dd><span className="rd" data-s="3">Autorizado por el vendedor</span></dd></div>
+                <div><dt>EBITDA</dt><dd><span className="rd" data-s="3">US$ 3.1 M</span><span className="ld-file-tag" data-s="3">Solo autorizados</span></dd></div>
+              </dl>
+              <div className="ld-file-docs" data-s="4">
+                <div className="ld-file-sub">Documentos</div>
+                {[["Estados financieros", "Lectura"], ["Memorándum", "Descarga"], ["Contratos", "Por solicitud"]].map(([d, perm], k) => (
+                  <div key={d} className="ld-file-doc" style={{ "--i": k } as React.CSSProperties}>
+                    <span><Icon name="description" size={16} /> {d}</span>
+                    <span className="ld-file-perm">{perm}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="ld-file-log" data-s="5">
+                <div className="ld-file-sub">Bitácora</div>
+                <div className="ld-file-logline" style={{ "--i": 0 } as React.CSSProperties}><Icon name="history" size={16} /> Consulta registrada · Estados financieros</div>
+                <div className="ld-file-logline" style={{ "--i": 1 } as React.CSSProperties}><Icon name="block" size={16} /> El vendedor puede revocar el acceso en cualquier momento</div>
+              </div>
+            </div>
           </div>
         </div>
+      </section>
+
+      {/* ---------- Cobertura: mapa por regiones ---------- */}
+      <section className="on-dark ld-cover">
+        <div className="wrap ld-cover-grid">
+          <div className="ld-cover-copy">
+            <div className="eyebrow" style={{ color: "#AEAEAE" }} data-reveal>Cobertura</div>
+            <h2 className="h2-light" style={{ margin: "16px 0 16px" }} data-reveal>Oportunidades en todo México, sin revelar quién es quién.</h2>
+            <p style={{ fontSize: 16, lineHeight: 1.6, color: "#AEAEAE", maxWidth: 440 }} data-reveal>
+              Se muestran por región, nunca por empresa. Pase el cursor o toque una región para ver su actividad.
+            </p>
+          </div>
+          <RegionMap stats={stats} />
+        </div>
+        <p className="wrap ld-cover-note">
+          {stats.total >= 3 ? "Oportunidades publicadas en la plataforma. " : ""}Agrupación regional de la plataforma; el mosaico no está a escala.
+        </p>
       </section>
 
       {/* ---------- Para quién ---------- */}
@@ -237,8 +296,8 @@ export default async function Landing() {
               <p style={{ color: "#AEAEAE", fontSize: 16 }}>Revisamos cada solicitud para mantener una comunidad de participantes calificados.</p>
             </div>
             <div className="wrap-gap" style={{ gap: 12 }}>
-              <Link href="/solicitar-acceso" className="btn btn-light btn-lg">Solicitar acceso</Link>
-              <Link href="/iniciar-sesion" className="btn btn-ghost-dark btn-lg">Iniciar sesión</Link>
+              <Link href="/solicitar-acceso" className="btn btn-light btn-lg" data-vault>Solicitar acceso</Link>
+              <Link href="/iniciar-sesion" className="btn btn-ghost-dark btn-lg" data-vault>Iniciar sesión</Link>
             </div>
           </div>
         </div>
